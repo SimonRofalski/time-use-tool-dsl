@@ -100,16 +100,19 @@ function CourseTooltip({ active, payload, label }: any) {
 
 function ChartCard({
   title,
+  hint,
   children,
 }: {
   title: string;
+  hint?: string;
   children: React.ReactNode;
 }) {
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
-      <p className="mb-4 text-sm font-semibold text-slate-700 dark:text-slate-200">
+      <p className={`${hint ? "mb-1" : "mb-4"} text-sm font-semibold text-slate-700 dark:text-slate-200`}>
         {title}
       </p>
+      {hint && <p className="mb-4 text-xs text-slate-400 dark:text-slate-500">{hint}</p>}
       {children}
     </div>
   );
@@ -223,6 +226,10 @@ export default function StatistikenTab() {
             <p className="mt-2 text-3xl font-bold text-slate-800 dark:text-slate-100">
               {kpis.newEntriesLast7Days}
             </p>
+            {/* usage metric: counts everything that was entered, unlike the research charts */}
+            <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+              {t("usageHint")}
+            </p>
           </div>
 
           <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
@@ -241,7 +248,7 @@ export default function StatistikenTab() {
       {/* --- Row 2: Trend + Course progress --- */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* Active users trend */}
-        <ChartCard title={t("activeUsersTrend.title")}>
+        <ChartCard title={t("activeUsersTrend.title")} hint={t("usageHint")}>
           {trendData.every((d) => d.users === 0) ? (
             <p className="py-10 text-center text-sm text-slate-400">
               {t("activeUsersTrend.noActivity")}
@@ -431,30 +438,47 @@ export default function StatistikenTab() {
               {t("categoryDistribution.noEntries")}
             </p>
           ) : (
-            <ResponsiveContainer width="100%" height={260}>
-              <PieChart>
-                <Pie
-                  data={categoryData}
-                  dataKey="minutes"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={95}
-                  paddingAngle={2}
-                >
-                  {categoryData.map((entry, index) => (
-                    <Cell key={index} fill={getCategoryColorById(entry.categoryId)} />
+            <>
+              <ResponsiveContainer width="100%" height={220}>
+                <PieChart>
+                  <Pie
+                    data={categoryData}
+                    dataKey="minutes"
+                    nameKey="name"
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={95}
+                    paddingAngle={2}
+                  >
+                    {categoryData.map((entry, index) => (
+                      <Cell key={index} fill={getCategoryColorById(entry.categoryId)} />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<CategoryTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+              {/* Legend as its own list below the ring (recharts' built-in legend overlapped
+                  the ring once it wrapped onto several lines); largest share first */}
+              <ul className="mt-3 grid grid-cols-1 gap-x-4 gap-y-1.5 text-xs sm:grid-cols-2">
+                {[...categoryData]
+                  .sort((a, b) => b.minutes - a.minutes)
+                  .map((entry) => (
+                    <li key={entry.categoryId} className="flex items-center gap-2">
+                      <span
+                        className="h-2.5 w-2.5 shrink-0 rounded-full"
+                        style={{ backgroundColor: getCategoryColorById(entry.categoryId) }}
+                      />
+                      <span className="min-w-0 flex-1 truncate text-slate-600 dark:text-slate-300">
+                        {entry.name}
+                      </span>
+                      <span className="shrink-0 tabular-nums text-slate-400 dark:text-slate-500">
+                        {Math.round(entry.percentage)}%
+                      </span>
+                    </li>
                   ))}
-                </Pie>
-                <Tooltip content={<CategoryTooltip />} />
-                <Legend
-                  iconType="circle"
-                  iconSize={8}
-                  wrapperStyle={{ fontSize: 11 }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+              </ul>
+            </>
           )}
         </ChartCard>
       </div>

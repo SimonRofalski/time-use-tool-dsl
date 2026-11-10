@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl";
 
 // Forced password change after an admin set the password (profiles.must_change_password).
 // The protected layout shows only this form until it succeeds; /api/auth/change-password clears the flag.
+// Right after signing in the temporary password is not asked again; the field only appears when
+// the server asks for it (session older than 30 minutes).
 
 type MustChangePasswordFormProps = {
   onSaved?: () => Promise<void> | void;
@@ -15,6 +17,7 @@ export default function MustChangePasswordForm({
 }: MustChangePasswordFormProps) {
   const t = useTranslations("mustChangePassword");
   const [currentPassword, setCurrentPassword] = useState("");
+  const [askCurrentPassword, setAskCurrentPassword] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [saving, setSaving] = useState(false);
@@ -28,7 +31,7 @@ export default function MustChangePasswordForm({
 
     setSaveError(null);
 
-    if (!currentPassword) {
+    if (askCurrentPassword && !currentPassword) {
       setSaveError(t("currentPasswordRequired"));
       return;
     }
@@ -53,26 +56,34 @@ export default function MustChangePasswordForm({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ currentPassword, newPassword }),
+        body: JSON.stringify({
+          currentPassword: askCurrentPassword ? currentPassword : undefined,
+          newPassword,
+        }),
       });
 
-      let result: { error?: string } = {};
+      let result: { error?: string; currentPasswordRequired?: boolean } = {};
       try {
-        result = (await response.json()) as { error?: string };
+        result = (await response.json()) as typeof result;
       } catch {
         result = { error: t("unexpectedServerResponse") };
       }
 
       if (!response.ok) {
+        if (result.currentPasswordRequired && !askCurrentPassword) {
+          // session too old: show the field and ask for the temporary password
+          setAskCurrentPassword(true);
+          setSaveError(t("currentPasswordRequired"));
+          return;
+        }
         setSaveError(result.error ?? t("saveFailedError"));
         return;
       }
 
       await onSaved?.();
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : t("networkError");
-      setSaveError(message);
+    } catch {
+      // only fetch itself can throw here (no connection)
+      setSaveError(t("networkError"));
     } finally {
       setSaving(false);
     }
@@ -89,19 +100,21 @@ export default function MustChangePasswordForm({
         </p>
 
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
-            {t("currentPasswordLabel")}
-            <input
-              type="password"
-              value={currentPassword}
-              onChange={(event) => {
-                setCurrentPassword(event.target.value);
-                setSaveError(null);
-              }}
-              autoComplete="current-password"
-              className="mt-1.5 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
-            />
-          </label>
+          {askCurrentPassword && (
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
+              {t("currentPasswordLabel")}
+              <input
+                type="password"
+                value={currentPassword}
+                onChange={(event) => {
+                  setCurrentPassword(event.target.value);
+                  setSaveError(null);
+                }}
+                autoComplete="current-password"
+                className="mt-1.5 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-800 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-slate-700 dark:bg-slate-950 dark:text-slate-100"
+              />
+            </label>
+          )}
 
           <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
             {t("newPasswordLabel")}

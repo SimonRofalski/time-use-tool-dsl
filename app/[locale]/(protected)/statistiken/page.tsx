@@ -1219,8 +1219,7 @@ export default function StatistikenPage() {
   }
 
   async function handleExportPdf() {
-    // The report's own texts are German only (see export-pdf.ts); the data labels passed in
-    // (categories, activities, filter) follow the UI language
+    // Report texts and data labels (categories, activities, filter) follow the UI language
     setIsExportingPdf(true);
     try {
       await generatePersonalReportPdf({
@@ -1238,6 +1237,9 @@ export default function StatistikenPage() {
           metaStats: comparisonMetaStats,
           categories: categoryComparison,
         },
+        locale: locale === "en" ? "en" : "de",
+        t: (key, values) => t(`pdf.${key}` as never, values as never),
+        levelWord: (rank) => t(`satisfactionLevels.${rank}` as never),
       });
     } finally {
       setIsExportingPdf(false);

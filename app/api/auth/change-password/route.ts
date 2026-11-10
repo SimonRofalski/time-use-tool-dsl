@@ -15,6 +15,11 @@ type ChangePasswordBody = {
 // change after an admin-set password, see MustChangePasswordForm).
 // The current password is required: without it, anyone holding someone else's
 // session could set a password of their own and keep the account.
+// Exception: the forced change (must_change_password) within FRESH_SESSION_MINUTES of signing in.
+// The person has just typed the temporary password to get this session, so asking again adds
+// nothing. An older session must confirm it again; the response then says
+// currentPasswordRequired: true and the form shows the field.
+const FRESH_SESSION_MINUTES = 30;
 export async function POST(request: NextRequest) {
   const t = await getTranslations({
     locale: getApiLocale(request),
@@ -36,22 +41,40 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: t("passwordTooShort") }, { status: 400 });
   }
 
-  // Checking the current password is a sign-in attempt: same limit as the login
-  if (await isRateLimited("signin", `${clientIp(request)}|${user.email.toLowerCase()}`, 30, 5)) {
-    return NextResponse.json({ error: "Request rate limit reached" }, { status: 429 });
-  }
-
-  const rows = await withService((db) =>
-    db.query<{ password_hash: string | null }>("SELECT password_hash FROM public.app_user WHERE id = $1", [user.id]),
+  const [state] = await withService((db) =>
+    db.query<{ password_hash: string | null; forced_and_fresh: boolean }>(
+      `SELECT a.password_hash,
+              (p.must_change_password AND s.created_at > now() - make_interval(mins => $3)) AS forced_and_fresh
+         FROM public.app_user a
+         JOIN public.profiles p ON p.id = a.id
+         JOIN public.user_session s ON s.id = $2 AND s.user_id = a.id
+        WHERE a.id = $1`,
+      [user.id, user.sessionId, FRESH_SESSION_MINUTES],
+    ),
   );
-  if (!body.currentPassword || !(await verifyPassword(body.currentPassword, rows[0]?.password_hash ?? null))) {
-    return NextResponse.json(
-      { error: t("currentPasswordWrong") },
-      { status: 400 },
-    );
+  const passwordHash = state?.password_hash ?? null;
+
+  if (!state?.forced_and_fresh) {
+    if (!body.currentPassword) {
+      return NextResponse.json(
+        { error: t("currentPasswordWrong"), currentPasswordRequired: true },
+        { status: 400 },
+      );
+    }
+    // Checking the current password is a sign-in attempt: same limit as the login
+    if (await isRateLimited("signin", `${clientIp(request)}|${user.email.toLowerCase()}`, 30, 5)) {
+      return NextResponse.json({ error: "Request rate limit reached" }, { status: 429 });
+    }
+    if (!(await verifyPassword(body.currentPassword, passwordHash))) {
+      return NextResponse.json(
+        { error: t("currentPasswordWrong"), currentPasswordRequired: true },
+        { status: 400 },
+      );
+    }
   }
 
-  if (body.currentPassword === body.newPassword) {
+  // The new password must differ from the current (temporary) one
+  if (await verifyPassword(body.newPassword, passwordHash)) {
     return NextResponse.json({ error: t("newPasswordSameAsCurrent") }, { status: 400 });
   }
 
@@ -60,9 +83,9 @@ export async function POST(request: NextRequest) {
 
   // Password + clearing must_change_password in one transaction (profiles.must_change_password can
   // only be written by the server, see db/migrations/0003_access_model.sql)
-  const passwordHash = await hashPassword(body.newPassword);
+  const newHash = await hashPassword(body.newPassword);
   await withService(async (db) => {
-    await db.query("UPDATE public.app_user SET password_hash = $2 WHERE id = $1", [user.id, passwordHash]);
+    await db.query("UPDATE public.app_user SET password_hash = $2 WHERE id = $1", [user.id, newHash]);
     await db.query("UPDATE public.profiles SET must_change_password = false WHERE id = $1", [user.id]);
   });
   // Other devices are logged out; the current session stays

@@ -12,8 +12,12 @@ import type {
 // Personal PDF report of the Statistiken page ("Persönliche Auswertung"), built in the browser
 // from the data the user already sees there. It contains only the user's own values plus
 // anonymous course values (pool of >= 3 participants), never other people's individual data.
-// Report texts are German only. Charts are drawn with jsPDF primitives (no screenshots), so
-// they print crisp: daily stacked bars, category bars, distribution strips for the topics.
+// Texts come from messages/{de,en}.json (statistiken.pdf), so the report follows the UI language.
+// Charts are drawn with jsPDF primitives (no screenshots), so they print crisp: daily stacked bars,
+// category bars, distribution strips for the topics.
+
+/** Translator for the keys under statistiken.pdf, e.g. t("kpi.trackedTime"). */
+export type PdfTranslate = (key: string, values?: Record<string, string | number>) => string;
 
 export type PersonalReportInput = {
   courseName: string;
@@ -30,6 +34,10 @@ export type PersonalReportInput = {
     metaStats: ComparisonMetaStats | null;
     categories: CategoryComparison[];
   };
+  locale: "de" | "en";
+  t: PdfTranslate;
+  /** translated word for a wellbeing level (1 = very bad … 5 = very good) */
+  levelWord: (rank: number) => string;
 };
 
 // --- Layout constants (mm, A4 portrait) ---
@@ -73,19 +81,20 @@ function hours1(minutes: number): string {
   return (minutes / 60).toFixed(1);
 }
 
-function formatHm(minutes: number): string {
+function formatHm(minutes: number, t: PdfTranslate): string {
   const total = Math.round(minutes);
   const h = Math.floor(total / 60);
   const m = total % 60;
-  if (h === 0) return `${m} min`;
-  return m === 0 ? `${h} h` : `${h} h ${m} min`;
+  if (h === 0) return t("minutesShort", { minutes: m });
+  return m === 0 ? t("hoursShort", { hours: h }) : t("hoursMinutes", { hours: h, minutes: m });
 }
 
-function formatDateShort(isoDate: string): string {
+// "Mo 3.11." (de) / "Mon 11/3" (en)
+function formatDateShort(isoDate: string, locale: "de" | "en"): string {
   const [y, m, d] = isoDate.slice(0, 10).split("-").map(Number);
   const date = new Date(y, m - 1, d);
-  const weekday = date.toLocaleDateString("de-DE", { weekday: "short" });
-  return `${weekday.replace(".", "")} ${d}.${m}.`;
+  const weekday = date.toLocaleDateString(locale === "en" ? "en-US" : "de-DE", { weekday: "short" });
+  return locale === "en" ? `${weekday} ${m}/${d}` : `${weekday.replace(".", "")} ${d}.${m}.`;
 }
 
 function mean(values: number[]): number {
@@ -101,24 +110,19 @@ function percentile(values: number[], userValue: number): number {
 }
 
 // Sentence placing the user's value within the course distribution
-function positionText(values: number[], userValue: number): string {
-  if (userValue === 0) return "Keine eigenen Einträge in diesem Zeitraum";
+function positionText(values: number[], userValue: number, t: PdfTranslate): string {
+  if (userValue === 0) return t("comparison.positionNone");
   const p = percentile(values, userValue);
   return p >= 50
-    ? `Du liegst über ${p}% der Kursgruppe`
-    : `Du liegst unter ${100 - p}% der Kursgruppe`;
+    ? t("comparison.positionAbove", { percentile: p })
+    : t("comparison.positionBelow", { percentile: 100 - p });
 }
 
-// User minus course mean in h/Tag; differences below 0.25 h count as "im Kursschnitt"
-function differenceText(userValue: number, meanValue: number): string {
+// User minus course mean in h/day; differences below 0.25 h count as "course average"
+function differenceText(userValue: number, meanValue: number, t: PdfTranslate): string {
   const diff = userValue - meanValue;
-  if (Math.abs(diff) < 0.25) return "im Kursschnitt";
-  return `${diff > 0 ? "+" : "-"}${Math.abs(diff).toFixed(1)} h/Tag`;
-}
-
-// Word for an average label ("4.1 / 5 (82%)") — same five levels as the Zeiterfassung
-function satisfactionWord(label: string): string {
-  return satisfactionLevelForLabel(label)?.label ?? "";
+  if (Math.abs(diff) < 0.25) return t("diffAverage");
+  return t("diffHours", { sign: diff > 0 ? "+" : "-", value: Math.abs(diff).toFixed(1) });
 }
 
 // --- Main ---
@@ -141,7 +145,13 @@ export async function buildPersonalReportPdf(input: PersonalReportInput) {
   const autoTable = autoTableModule.default;
 
   const doc = new jsPDF({ unit: "mm", format: "a4" });
-  const generatedAt = new Date().toLocaleDateString("de-DE", {
+  const { t, locale } = input;
+  // Word for an average label ("4.1 / 5 (82%)"): same five levels as the Zeiterfassung
+  const satisfactionWord = (label: string) => {
+    const level = satisfactionLevelForLabel(label);
+    return level ? input.levelWord(level.rank) : "";
+  };
+  const generatedAt = new Date().toLocaleDateString(locale === "en" ? "en-US" : "de-DE", {
     day: "2-digit",
     month: "2-digit",
     year: "numeric",
@@ -209,11 +219,11 @@ export async function buildPersonalReportPdf(input: PersonalReportInput) {
       doc.setPage(i);
       setText(7.5, MUTED);
       doc.text(
-        "Time Use Tool · Persönliche Auswertung · Nur eigene Daten und anonyme Kursdurchschnitte",
+        t("footer"),
         MARGIN,
         FOOTER_Y,
       );
-      doc.text(`Seite ${i} / ${pageCount}`, PAGE_W - MARGIN, FOOTER_Y, {
+      doc.text(t("page", { page: i, total: pageCount }), PAGE_W - MARGIN, FOOTER_Y, {
         align: "right",
       });
     }
@@ -222,15 +232,15 @@ export async function buildPersonalReportPdf(input: PersonalReportInput) {
   // --- Header ---
 
   setText(17, INK, "bold");
-  doc.text("Persönliche Zeitnutzungs-Auswertung", MARGIN, y + 2);
+  doc.text(t("title"), MARGIN, y + 2);
   y += 9;
 
   setText(9, MUTED);
   const headerLines = [
-    `Kurs: ${input.courseName || "-"}`,
-    `Teilnehmer:in: ${input.participantName || "-"}`,
-    `Teilnehmer-ID: ${input.participantId}`,
-    `Zeitraum: ${input.filterLabel} · Erstellt am ${generatedAt}`,
+    t("courseLine", { name: input.courseName || "-" }),
+    t("participantLine", { name: input.participantName || "-" }),
+    t("participantIdLine", { id: input.participantId }),
+    t("periodLine", { filter: input.filterLabel, date: generatedAt }),
   ];
   for (const line of headerLines) {
     doc.text(line, MARGIN, y);
@@ -238,7 +248,7 @@ export async function buildPersonalReportPdf(input: PersonalReportInput) {
   }
   setText(7, MUTED);
   const note = doc.splitTextToSize(
-    "Diese Auswertung enthält ausschliesslich deine eigenen Zeitnutzungsdaten. Kurswerte sind Durchschnitte über mindestens drei anonyme Teilnehmende; Einzelwerte anderer Personen sind nicht enthalten. Die Teilnehmer-ID dient dir als Referenz.",
+    t("privacyNote"),
     CONTENT_W,
   );
   doc.text(note, MARGIN, y + 0.5);
@@ -258,27 +268,27 @@ export async function buildPersonalReportPdf(input: PersonalReportInput) {
 
   const kpis: { label: string; value: string; hint: string }[] = [
     {
-      label: "Abgegebene Tage",
+      label: t("kpi.submittedDays"),
       value: `${submittedDays} / ${totalDays}`,
-      hint: "im gewählten Zeitraum",
+      hint: t("kpi.submittedDaysHint"),
     },
     {
-      label: "Erfasste Zeit",
+      label: t("kpi.trackedTime"),
       value: `${hours1(totalMinutes)} h`,
       hint:
         submittedDays > 0
-          ? `Ø ${hours1(totalMinutes / submittedDays)} h pro Tag`
+          ? t("kpi.trackedTimeHint", { hours: hours1(totalMinutes / submittedDays) })
           : "-",
     },
     {
-      label: "Ø Wohlbefinden",
+      label: t("kpi.wellbeing"),
       value: wellbeing.split("(")[0].trim() || "-",
-      hint: satisfactionWord(wellbeing) || "zeitgewichtet",
+      hint: satisfactionWord(wellbeing) || t("kpi.wellbeingHint"),
     },
     {
-      label: "Zeit mit IT-Gerät",
+      label: t("kpi.itShare"),
       value: withDevicePercent != null ? `${withDevicePercent}%` : "-",
-      hint: "Anteil der erfassten Zeit",
+      hint: t("kpi.itShareHint"),
     },
   ];
   const boxW = (CONTENT_W - 3 * 3) / 4;
@@ -296,12 +306,9 @@ export async function buildPersonalReportPdf(input: PersonalReportInput) {
   });
   y += 24;
 
-  // --- 1. Tägliche Zeitverteilung (stacked bars) ---
+  // --- 1. Daily time distribution (stacked bars) ---
 
-  sectionTitle(
-    "Tägliche Zeitverteilung",
-    "Stunden pro Kurstag nach Kategorie · grau: Tag nicht abgegeben",
-  );
+  sectionTitle(t("daily.title"), t("daily.subtitle"));
 
   const categoryNames = input.categoryRows.map((r) => r.name);
   const colorByName: Record<string, Rgb> = {};
@@ -315,7 +322,7 @@ export async function buildPersonalReportPdf(input: PersonalReportInput) {
 
   if (days.length === 0) {
     setText(9, MUTED);
-    doc.text("Keine Tage für den gewählten Zeitraum vorhanden.", MARGIN, y + 5);
+    doc.text(t("daily.noDays"), MARGIN, y + 5);
     y += 12;
   } else {
     ensureSpace(chartH + 26);
@@ -354,7 +361,7 @@ export async function buildPersonalReportPdf(input: PersonalReportInput) {
       }
       if (i % labelEvery === 0 || days.length <= 16) {
         setText(6.5, MUTED);
-        doc.text(formatDateShort(day.date), bx + barW / 2, top + chartH + 3.5, {
+        doc.text(formatDateShort(day.date, locale), bx + barW / 2, top + chartH + 3.5, {
           align: "center",
         });
       }
@@ -380,13 +387,11 @@ export async function buildPersonalReportPdf(input: PersonalReportInput) {
     y = ly + 6;
   }
 
-  // --- 2. Zeitverteilung nach Kategorie (bars + table) ---
+  // --- 2. Time by category (bars + table) ---
 
   sectionTitle(
-    "Zeitverteilung nach Kategorie",
-    hasComparison
-      ? "Ø Stunden pro abgegebenem Tag · farbig: du · grau: Ø Kurs"
-      : "Ø Stunden pro abgegebenem Tag",
+    t("categories.title"),
+    hasComparison ? t("categories.subtitleWithCourse") : t("categories.subtitle"),
   );
 
   const catRows = [...input.categoryRows]
@@ -416,25 +421,26 @@ export async function buildPersonalReportPdf(input: PersonalReportInput) {
 
   if (catRows.length === 0) {
     setText(9, MUTED);
-    doc.text("Noch keine Zeiteinträge vorhanden.", MARGIN, y + 4);
+    doc.text(t("categories.noEntries"), MARGIN, y + 4);
     y += 10;
   } else {
-    // One table; the "Vergleich" column gets paired bars drawn into the cell
+    // One table; the bar column gets paired bars drawn into the cell
     // (coloured = you, grey = course mean) so chart and numbers stay together.
     const maxVal = Math.max(
       1,
       ...catRows.flatMap((r) => [r.userPerDay, r.courseMean ?? 0]),
     );
     const BAR_COL = 1;
+    const c = (key: string) => t(`categories.${key}`);
     const head = hasComparison
-      ? [["Kategorie", "Ø h/Tag (du / Kurs)", "Ø / Tag", "Ø Kurs", "Differenz", "Einordnung", "Gesamt", "Anteil"]]
-      : [["Kategorie", "Ø h/Tag", "Ø / Tag", "Gesamt", "Anteil"]];
+      ? [[c("colCategory"), c("colBars"), c("colPerDay"), c("colCourse"), c("colDiff"), c("colPosition"), c("colTotal"), c("colShare")]]
+      : [[c("colCategory"), c("colBarsSolo"), c("colPerDay"), c("colTotal"), c("colShare")]];
     const body = catRows.map((r) => {
       const cm = r.courseMean ?? 0;
       const values = courseValuesByCategory[r.categoryId] ?? [];
       const pos =
         r.userPerDay > 0 && values.length > 0
-          ? `über ${percentile(values, r.userPerDay)}% der Gruppe`
+          ? t("categories.positionCell", { percentile: percentile(values, r.userPerDay) })
           : "-";
       return hasComparison
         ? [
@@ -442,16 +448,16 @@ export async function buildPersonalReportPdf(input: PersonalReportInput) {
             "",
             `${r.userPerDay.toFixed(1)} h`,
             `${cm.toFixed(1)} h`,
-            differenceText(r.userPerDay, cm),
+            differenceText(r.userPerDay, cm, t),
             pos,
-            formatHm(r.totalMinutes),
+            formatHm(r.totalMinutes, t),
             `${Math.round(r.percentOfTotal)}%`,
           ]
         : [
             r.name,
             "",
             `${r.userPerDay.toFixed(1)} h`,
-            formatHm(r.totalMinutes),
+            formatHm(r.totalMinutes, t),
             `${Math.round(r.percentOfTotal)}%`,
           ];
     });
@@ -509,21 +515,21 @@ export async function buildPersonalReportPdf(input: PersonalReportInput) {
     y = lastTableY() + 8;
   }
 
-  // --- 3. Kursvergleich ---
+  // --- 3. Course comparison ---
 
   // Keep the heading together with the three distribution strips
   ensureSpace(hasComparison ? 82 : 22);
   sectionTitle(
-    "Kursvergleich – wo stehst du?",
+    t("comparison.title"),
     hasComparison
-      ? `Vergleich mit ${input.comparison.qualifyingUserCount} anonymen Teilnehmenden (je mind. 2 abgegebene Tage) · blau: dein Wert · gestrichelt: Ø Kurs`
+      ? t("comparison.subtitle", { count: input.comparison.qualifyingUserCount })
       : undefined,
   );
 
   if (!input.comparison.enabled) {
     setText(9, MUTED);
     doc.text(
-      "Der Kursvergleich ist für diesen Kurs (noch) nicht freigeschaltet.",
+      t("comparison.notEnabled"),
       MARGIN,
       y + 3,
     );
@@ -531,7 +537,7 @@ export async function buildPersonalReportPdf(input: PersonalReportInput) {
   } else if (!hasComparison) {
     setText(9, MUTED);
     doc.text(
-      `Noch nicht verfügbar: mindestens 3 Teilnehmende mit je 2 abgegebenen Tagen nötig (aktuell ${input.comparison.qualifyingUserCount}).`,
+      t("comparison.notEnough", { count: input.comparison.qualifyingUserCount }),
       MARGIN,
       y + 3,
     );
@@ -554,7 +560,11 @@ export async function buildPersonalReportPdf(input: PersonalReportInput) {
       doc.text(topic.label, MARGIN, y + 3);
       setText(7.5, MUTED);
       doc.text(
-        `Dein Wert ${topic.userValue.toFixed(1)} ${topic.unit}   ·   Ø Kurs ${meanValue.toFixed(1)} ${topic.unit}   ·   ${differenceText(topic.userValue, meanValue)}`,
+        [
+          t("comparison.yourValue", { value: topic.userValue.toFixed(1), unit: topic.unit }),
+          t("comparison.courseValue", { value: meanValue.toFixed(1), unit: topic.unit }),
+          differenceText(topic.userValue, meanValue, t),
+        ].join("   ·   "),
         PAGE_W - MARGIN,
         y + 3,
         { align: "right" },
@@ -582,7 +592,7 @@ export async function buildPersonalReportPdf(input: PersonalReportInput) {
         align: "right",
       });
       setText(7.5, BLUE, "bold");
-      doc.text(positionText(values, topic.userValue), PAGE_W / 2, lineY + 6.5, {
+      doc.text(positionText(values, topic.userValue, t), PAGE_W / 2, lineY + 6.5, {
         align: "center",
       });
       y = lineY + 12;
@@ -596,13 +606,13 @@ export async function buildPersonalReportPdf(input: PersonalReportInput) {
       ensureSpace(34);
       autoTable(doc, {
         startY: y,
-        head: [["Merkmal", "Du", "Ø Kurs"]],
+        head: [[t("comparison.colMetric"), t("comparison.colYou"), t("comparison.colCourse")]],
         body: [
-          ["IT-Gerät (mit / ohne)", pair(ms.itDevice.user), pair(ms.itDevice.course)],
-          ["Sozial (mit anderen / allein)", pair(ms.social.user), pair(ms.social.course)],
-          ["Ort (zuhause / anderswo)", pair(ms.location.user), pair(ms.location.course)],
+          [t("comparison.itDevice"), pair(ms.itDevice.user), pair(ms.itDevice.course)],
+          [t("comparison.social"), pair(ms.social.user), pair(ms.social.course)],
+          [t("comparison.location"), pair(ms.location.user), pair(ms.location.course)],
           [
-            "Wohlbefinden (Ø, zeitgewichtet)",
+            t("comparison.wellbeing"),
             `${ms.wellbeing.userLabel} ${satisfactionWord(ms.wellbeing.userLabel)}`.trim(),
             `${ms.wellbeing.courseLabel} ${satisfactionWord(ms.wellbeing.courseLabel)}`.trim(),
           ],
@@ -616,18 +626,15 @@ export async function buildPersonalReportPdf(input: PersonalReportInput) {
     }
   }
 
-  // --- 4. Kontext deiner Zeit (Geräte / Sozial / Orte) ---
+  // --- 4. Context of the time (devices / company / places) ---
 
   const meta = input.metaAggregates;
   if (meta) {
-    sectionTitle(
-      "Kontext deiner Zeit",
-      "Womit, mit wem und wo du deine erfasste Zeit verbracht hast (Anteil an der Gesamtzeit)",
-    );
+    sectionTitle(t("context.title"), t("context.subtitle"));
     const groups: { title: string; items: { name: string; minutes: number }[] }[] = [
-      { title: "Geräte-Nutzung", items: meta.devices },
-      { title: "Sozialer Kontext", items: meta.social },
-      { title: "Orte & Transport", items: meta.locations },
+      { title: t("context.devices"), items: meta.devices },
+      { title: t("context.social"), items: meta.social },
+      { title: t("context.locations"), items: meta.locations },
     ];
     const colW = (CONTENT_W - 2 * 4) / 3;
     const maxRows = Math.max(...groups.map((g) => Math.min(g.items.length, 6)), 1);
@@ -656,7 +663,7 @@ export async function buildPersonalReportPdf(input: PersonalReportInput) {
     y = top + 8 + maxRows * 4.4 + 6;
   }
 
-  // --- 5. Top-Aktivitäten ---
+  // --- 5. Top activities ---
 
   const activityRows = input.categoryRows
     .flatMap((cat) =>
@@ -682,18 +689,22 @@ export async function buildPersonalReportPdf(input: PersonalReportInput) {
     .slice(0, 12);
 
   if (activityRows.length > 0) {
-    sectionTitle(
-      "Deine Top-Aktivitäten",
-      "Die 12 Tätigkeiten mit der meisten Zeit · Wohlbefinden zeitgewichtet · IT: Anteil der Zeit mit Gerät",
-    );
+    sectionTitle(t("activities.title"), t("activities.subtitle"));
     ensureSpace(20);
     autoTable(doc, {
       startY: y,
-      head: [["Kategorie", "Aktivität", "Zeit", "Anteil", "Ø Wohlbefinden", "IT"]],
+      head: [[
+        t("activities.colCategory"),
+        t("activities.colActivity"),
+        t("activities.colTime"),
+        t("activities.colShare"),
+        t("activities.colWellbeing"),
+        t("activities.colIt"),
+      ]],
       body: activityRows.map((r) => [
         r.category,
         r.name,
-        formatHm(r.minutes),
+        formatHm(r.minutes, t),
         `${Math.round(r.percent)}%`,
         r.satisfaction,
         r.devicePercent != null ? `${r.devicePercent}%` : "-",
@@ -715,12 +726,12 @@ export async function buildPersonalReportPdf(input: PersonalReportInput) {
 
   drawFooters();
 
-  const safeName = (input.participantName || "Auswertung")
+  const safeName = (input.participantName || t("fileName"))
     .replace(/[^\w\- äöüÄÖÜß]/g, "")
     .trim()
     .replace(/\s+/g, "_");
   return {
     doc,
-    fileName: `Zeitnutzung_${safeName}_${generatedAt.replaceAll(".", "-")}.pdf`,
+    fileName: `${t("fileName")}_${safeName}_${generatedAt.replace(/[./]/g, "-")}.pdf`,
   };
 }

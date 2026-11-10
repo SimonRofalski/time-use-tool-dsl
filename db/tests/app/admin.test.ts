@@ -21,6 +21,9 @@ async function main() {
   const active = await q<{ n: number }>("SELECT count(*)::int AS n FROM public.profiles WHERE is_active");
   assert.equal(o.profiles.length, active[0].n);
   assert.equal(o.userCourses.length, (await q("SELECT 1 FROM public.user_course")).length);
+  // last sign-in for every login account (app_user is read on the server connection)
+  assert.equal(Object.keys(o.lastSignInById).length, (await q("SELECT 1 FROM public.app_user")).length);
+  assert.ok(o.profiles.every((p) => p.id in o.lastSignInById));
   const uc9001 = o.userCourses.find((u) => u.course?.name === "SEED Offen")!;
   assert.deepEqual(uc9001.course!.course_period, [{ start_date: "2026-11-02", end_date: "2026-11-08" }]);
   assert.equal(o.allDays.length, (await q("SELECT 1 FROM public.day")).length);

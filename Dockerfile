@@ -17,7 +17,10 @@ RUN npm ci --no-audit --no-fund
 # --- 2. build ---
 FROM ${NODE_IMAGE} AS builder
 WORKDIR /app
-ENV NEXT_TELEMETRY_DISABLED=1
+# commit shown in the app's settings panel; the GitLab pipeline passes the short SHA
+ARG APP_COMMIT=""
+ENV NEXT_TELEMETRY_DISABLED=1 \
+    APP_COMMIT=${APP_COMMIT}
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build

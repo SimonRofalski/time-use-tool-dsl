@@ -106,6 +106,8 @@
     "tutorialDescription": "Zeigt dir in ein paar Schritten die wichtigsten Funktionen.",
     "tutorialRestartButton": "Tutorial neu starten",
     "accountSectionTitle": "Konto",
+    "appSectionTitle": "App",
+    "versionLabel": "Version",
     "userIdLabel": "User ID",
     "lastLoginLabel": "Letztes Login",
     "lastLoginNever": "-",
@@ -427,7 +429,8 @@
         "colDiff": "Differenz",
         "colPosition": "Einordnung",
         "colTotal": "Gesamt",
-        "colShare": "Anteil"
+        "colShare": "Anteil",
+        "positionCell": "über {percentile}% der Gruppe"
       },
       "comparison": {
         "title": "Kursvergleich – wo stehst du?",
@@ -657,6 +660,8 @@
     "noActiveUsers": "Keine aktiven Nutzer vorhanden.",
     "courseLabel": "Kurs",
     "progressLabel": "Fortschritt",
+      "lastLoginLabel": "Letzter Login",
+      "neverLoggedIn": "Noch nie",
     "progressDaysLabel": "{submitted} / {total} Tage",
     "daysUnit": "Tage",
     "noCoursePlaceholder": "–",
@@ -676,6 +681,7 @@
       "course": "Kurs",
       "progress": "Fortschritt",
       "authMethod": "Anmeldeart",
+        "lastLogin": "Letzter Login",
       "actions": "Aktionen"
     },
     "includeConfirm": {
@@ -737,6 +743,7 @@
     }
   },
   "adminStatistiken": {
+    "usageHint": "inkl. nicht abgegebener Tage und ausgeschlossener Personen",
     "loading": "Statistiken werden geladen…",
     "loadError": "Statistiken konnten nicht geladen werden.",
     "kpis": {

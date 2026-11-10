@@ -1,9 +1,20 @@
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
-import { KeyRound, Search, ShieldCheck, ShieldOff, Trash2, UserPlus } from "lucide-react";
-import { useTranslations } from "next-intl";
-import { loadUserOverviewData, setUserAdmin, setUserCourseExcluded } from "@/app/components/admin/admin-actions";
+import {
+  KeyRound,
+  Search,
+  ShieldCheck,
+  ShieldOff,
+  Trash2,
+  UserPlus,
+} from "lucide-react";
+import { useLocale, useTranslations } from "next-intl";
+import {
+  loadUserOverviewData,
+  setUserAdmin,
+  setUserCourseExcluded,
+} from "@/app/components/admin/admin-actions";
 import { courseDurationDays, totalPeriodDays } from "@/lib/course-periods";
 import ConfirmModal from "./ConfirmModal";
 import CreateUserModal from "./CreateUserModal";
@@ -29,6 +40,7 @@ type UserRow = {
   authProvider: "password" | "switch_edu_id";
   mustChangePassword: boolean;
   isAdmin: boolean;
+  lastSignInAt: string | null;
 };
 
 type Kpis = {
@@ -81,7 +93,9 @@ function AuthProviderBadge({
             : "bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300"
         }`}
       >
-        {authProvider === "switch_edu_id" ? labels.switchEduId : labels.password}
+        {authProvider === "switch_edu_id"
+          ? labels.switchEduId
+          : labels.password}
       </span>
       {mustChangePassword && (
         <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-700 dark:bg-amber-900/40 dark:text-amber-300">
@@ -96,6 +110,7 @@ function AuthProviderBadge({
 
 export default function NutzeruebersichtTab() {
   const t = useTranslations("nutzeruebersicht");
+  const locale = useLocale();
 
   const [users, setUsers] = useState<UserRow[]>([]);
   const [kpis, setKpis] = useState<Kpis | null>(null);
@@ -114,10 +129,25 @@ export default function NutzeruebersichtTab() {
     void loadData();
   }, []);
 
+  // "10.11.2026" (de) / "11/10/2026" (en); "never" when the person never signed in
+  function formatLastLogin(value: string | null): string {
+    if (!value) return t("neverLoggedIn");
+    return new Date(value).toLocaleDateString(
+      locale === "en" ? "en-US" : "de-CH",
+      {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      },
+    );
+  }
+
   // --- Data loading ---
 
-  async function loadData() {
-    setIsLoading(true);
+  // silent: refresh without the loading screen, so open dialogs (e.g. the "account created"
+  // confirmation with the temporary password) stay on screen
+  async function loadData({ silent = false }: { silent?: boolean } = {}) {
+    if (!silent) setIsLoading(true);
     setError("");
 
     // All active profiles (admin RLS policy), enrollments with course name +
@@ -225,6 +255,7 @@ export default function NutzeruebersichtTab() {
             p.auth_provider === "switch_edu_id" ? "switch_edu_id" : "password",
           mustChangePassword: p.must_change_password ?? false,
           isAdmin: p.role === "admin",
+          lastSignInAt: overview.lastSignInById[p.id] ?? null,
         };
       }),
     );
@@ -387,7 +418,7 @@ export default function NutzeruebersichtTab() {
       {showCreateModal && (
         <CreateUserModal
           onClose={() => setShowCreateModal(false)}
-          onCreated={() => void loadData()}
+          onCreated={() => void loadData({ silent: true })}
         />
       )}
 
@@ -395,7 +426,9 @@ export default function NutzeruebersichtTab() {
         <SetPasswordModal
           userId={setPasswordUser.userId}
           userLabel={displayName(setPasswordUser)}
-          isSwitchEduIdAccount={setPasswordUser.authProvider === "switch_edu_id"}
+          isSwitchEduIdAccount={
+            setPasswordUser.authProvider === "switch_edu_id"
+          }
           onClose={() => setSetPasswordUser(null)}
           onSaved={() => {
             setSetPasswordUser(null);
@@ -533,6 +566,14 @@ export default function NutzeruebersichtTab() {
                         : u.submittedDays}
                     </p>
                   </div>
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                      {t("lastLoginLabel")}
+                    </p>
+                    <p className="mt-1 break-words text-slate-600 dark:text-slate-300">
+                      {formatLastLogin(u.lastSignInAt)}
+                    </p>
+                  </div>
                 </div>
 
                 <div className="mt-4 space-y-2 border-t border-slate-100 pt-3 dark:border-slate-800">
@@ -555,8 +596,14 @@ export default function NutzeruebersichtTab() {
                       onClick={() => openAdminModal(u)}
                       className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-600"
                     >
-                      {u.isAdmin ? <ShieldOff size={13} /> : <ShieldCheck size={13} />}
-                      {u.isAdmin ? t("removeAdminButton") : t("makeAdminButton")}
+                      {u.isAdmin ? (
+                        <ShieldOff size={13} />
+                      ) : (
+                        <ShieldCheck size={13} />
+                      )}
+                      {u.isAdmin
+                        ? t("removeAdminButton")
+                        : t("makeAdminButton")}
                     </button>
                   )}
                   <button
@@ -567,14 +614,16 @@ export default function NutzeruebersichtTab() {
                     <KeyRound size={13} />
                     {t("setPasswordButton")}
                   </button>
-                  <button
-                    type="button"
-                    onClick={() => openDeleteModal(u)}
-                    className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950/30"
-                  >
-                    <Trash2 size={13} />
-                    {t("deleteButton")}
-                  </button>
+                  {u.userId !== viewerId && (
+                    <button
+                      type="button"
+                      onClick={() => openDeleteModal(u)}
+                      className="flex w-full items-center justify-center gap-1.5 rounded-lg border border-red-200 px-3 py-2 text-xs font-medium text-red-600 transition hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950/30"
+                    >
+                      <Trash2 size={13} />
+                      {t("deleteButton")}
+                    </button>
+                  )}
                 </div>
               </div>
             ))
@@ -601,13 +650,16 @@ export default function NutzeruebersichtTab() {
                 <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                   {t("table.actions")}
                 </th>
+                <th className="px-4 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                  {t("table.lastLogin")}
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
               {filteredUsers.length === 0 ? (
                 <tr>
                   <td
-                    colSpan={5}
+                    colSpan={6}
                     className="px-4 py-10 text-center text-sm text-slate-400 dark:text-slate-500"
                   >
                     {searchQuery.trim() ? t("noUserFound") : t("noActiveUsers")}
@@ -693,7 +745,9 @@ export default function NutzeruebersichtTab() {
                                 : "border-amber-200 text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-900/20"
                             }`}
                           >
-                            {u.isExcluded ? t("includeButton") : t("excludeButton")}
+                            {u.isExcluded
+                              ? t("includeButton")
+                              : t("excludeButton")}
                           </button>
                         )}
                         {canToggleAdmin(u) && (
@@ -702,8 +756,14 @@ export default function NutzeruebersichtTab() {
                             onClick={() => openAdminModal(u)}
                             className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-600"
                           >
-                            {u.isAdmin ? <ShieldOff size={13} /> : <ShieldCheck size={13} />}
-                            {u.isAdmin ? t("removeAdminButton") : t("makeAdminButton")}
+                            {u.isAdmin ? (
+                              <ShieldOff size={13} />
+                            ) : (
+                              <ShieldCheck size={13} />
+                            )}
+                            {u.isAdmin
+                              ? t("removeAdminButton")
+                              : t("makeAdminButton")}
                           </button>
                         )}
                         <button
@@ -714,15 +774,22 @@ export default function NutzeruebersichtTab() {
                           <KeyRound size={13} />
                           {t("setPasswordButton")}
                         </button>
-                        <button
-                          type="button"
-                          onClick={() => openDeleteModal(u)}
-                          className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950/30"
-                        >
-                          <Trash2 size={13} />
-                          {t("deleteButton")}
-                        </button>
+                        {u.userId !== viewerId && (
+                          <button
+                            type="button"
+                            onClick={() => openDeleteModal(u)}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-red-200 px-3 py-1.5 text-xs font-medium text-red-600 transition hover:bg-red-50 dark:border-red-900 dark:text-red-400 dark:hover:bg-red-950/30"
+                          >
+                            <Trash2 size={13} />
+                            {t("deleteButton")}
+                          </button>
+                        )}
                       </div>
+                    </td>
+
+                    {/* Last sign-in */}
+                    <td className="whitespace-nowrap px-4 py-3 text-slate-600 dark:text-slate-300">
+                      {formatLastLogin(u.lastSignInAt)}
                     </td>
                   </tr>
                 ))

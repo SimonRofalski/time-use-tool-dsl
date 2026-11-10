@@ -8,9 +8,9 @@ type Row = Record<string, unknown>;
 
 // --- Nutzeruebersicht ---
 
-/** Active profiles, all enrollments (with course + periods) and day flags for the user table. */
+/** Active profiles, all enrollments (with course + periods), day flags and last sign-in for the user table. */
 export async function loadUserOverview(adminId: string) {
-  return withUser(
+  const overview = await withUser(
     adminId,
     async (db) => {
       const profiles = await db.query<{
@@ -40,6 +40,15 @@ export async function loadUserOverview(adminId: string) {
     },
     { readOnly: true },
   );
+  // app_user (login accounts) is readable by the server only; the caller has been checked to be an
+  // admin (admin-actions.ts). Only the timestamp leaves this function.
+  const signIns = await withService(
+    (db) => db.query<{ id: string; last_sign_in_at: string | null }>("SELECT id, last_sign_in_at FROM public.app_user"),
+    { readOnly: true },
+  );
+  const lastSignInById: Record<string, string | null> = {};
+  for (const r of signIns) lastSignInById[r.id] = r.last_sign_in_at;
+  return { ...overview, lastSignInById };
 }
 
 /** user_course.is_excluded for the comparison and the exports */

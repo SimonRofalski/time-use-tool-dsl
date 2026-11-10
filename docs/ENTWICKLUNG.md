@@ -124,6 +124,8 @@ Prüfung nach [TESTPLAN.md](../TESTPLAN.md) dazu.
 ## Release
 
 1. Auf `main` ist alles grün, und die Testumgebung (`:test`) ist geprüft.
-2. Einen Tag setzen: `git tag v1.2.0 && git push origin v1.2.0`.
-3. Dem DSL die neue Version melden. Es trägt sie in der Produktions-Compose-Datei ein (siehe
+2. Die Version in `package.json` erhöhen (sie erscheint in der App unter Einstellungen → App),
+   committen und pushen.
+3. Einen Tag mit derselben Nummer setzen: `git tag v1.2.0 && git push origin v1.2.0`.
+4. Dem DSL die neue Version melden. Es trägt sie in der Produktions-Compose-Datei ein (siehe
    [DEPLOY.md](../DEPLOY.md)).

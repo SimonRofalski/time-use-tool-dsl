@@ -664,13 +664,16 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
     );
   }
 
-  // Loading screen until the access check has decided which gate (if any) applies
+  // Loading screen until the access check has decided which gate (if any) applies. The password
+  // gate comes first and returns before the later steps are checked, so they stay unknown (null)
+  // while it is open; it must not wait for them.
   if (
     !user ||
     !accessCheckReady ||
-    needsSecurityQuestions === null ||
-    needsProfileDetails === null ||
-    (!needsSecurityQuestions && !needsProfileDetails && isEnrolled === null)
+    (needsPasswordChange !== true &&
+      (needsSecurityQuestions === null ||
+        needsProfileDetails === null ||
+        (!needsSecurityQuestions && !needsProfileDetails && isEnrolled === null)))
   ) {
     return (
       <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100">
@@ -1077,6 +1080,21 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
                       </dd>
                     </div>
                   </dl>
+                </div>
+
+                {/* App version (next.config.ts): package.json version + build commit */}
+                <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 dark:border-slate-800 dark:bg-slate-950">
+                  <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+                    {t("appSectionTitle")}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-800 dark:text-slate-100">
+                    {t("versionLabel")} {process.env.NEXT_PUBLIC_APP_VERSION}
+                    {process.env.NEXT_PUBLIC_APP_COMMIT && (
+                      <span className="ml-1 font-mono text-xs text-slate-500 dark:text-slate-400">
+                        ({process.env.NEXT_PUBLIC_APP_COMMIT})
+                      </span>
+                    )}
+                  </p>
                 </div>
               </aside>
             </div>
