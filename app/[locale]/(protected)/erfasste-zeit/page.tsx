@@ -281,7 +281,6 @@ function DayCarousel({
   label?: string;
 }) {
   const t = useTranslations("erfassteZeit");
-  const scrollRef = useRef<HTMLDivElement>(null);
 
   const editHandlerFor = (day: CourseDay) =>
     onEditDayQuestions && day.isComplete
@@ -311,7 +310,6 @@ function DayCarousel({
 
       {/* Desktop: horizontally scrollable card row */}
       <div
-        ref={scrollRef}
         className="hidden gap-3 overflow-x-auto pb-2 md:flex"
         style={{ scrollSnapType: "x mandatory", scrollbarWidth: "none" }}
       >

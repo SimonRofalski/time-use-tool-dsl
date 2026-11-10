@@ -1,6 +1,5 @@
--- T03 participant view (inherited RLS, kept unchanged): own data, plus the SUBMITTED days and their
--- time entries of everybody in the same course. The course comparison itself is computed on the
--- server (service connection), so it no longer depends on these read rights.
+-- T03 participant view: own data only. Other participants' days and entries stay hidden, even when
+-- submitted (the course comparison is computed on the server, migration 0005).
 SELECT set_config('role', 'tut_authenticated', true),
        set_config('app.user_id', '5eed0000-0000-4000-8000-000000000111', true);   -- p1, course 9001
 DO $$
@@ -8,21 +7,16 @@ BEGIN
   IF (SELECT count(*) FROM public.profiles) <> 1 THEN RAISE EXCEPTION 'T03a: participant sees other profiles'; END IF;
   IF (SELECT count(*) FROM public.user_course) <> 1 THEN RAISE EXCEPTION 'T03b: participant sees other enrollments'; END IF;
   IF (SELECT count(*) FROM public.day WHERE profiles_id = auth.uid()) <> 4 THEN RAISE EXCEPTION 'T03c: own days'; END IF;
-  -- submitted days of the others in 9001: a1 1, p2 2, p3 2, p4 1, p5 2 (excluded participants are filtered by the app)
-  IF (SELECT count(*) FROM public.day WHERE profiles_id <> auth.uid()) <> 8 THEN RAISE EXCEPTION 'T03d: comparison days'; END IF;
+  -- the others in 9001 have submitted days (a1 1, p2 2, p3 2, p4 1, p5 2); none of them is visible
+  IF (SELECT count(*) FROM public.day WHERE profiles_id <> auth.uid()) <> 0 THEN RAISE EXCEPTION 'T03d: days of others'; END IF;
   IF (SELECT count(*) FROM public.day WHERE course_id <> 9001) <> 0 THEN RAISE EXCEPTION 'T03e: days of other courses'; END IF;
-  IF (SELECT count(*) FROM public.time_entry) <> 3 * 144 + 36 + 8 * 144 THEN RAISE EXCEPTION 'T03f: time entries'; END IF;
+  IF (SELECT count(*) FROM public.time_entry) <> 3 * 144 + 36 THEN RAISE EXCEPTION 'T03f: time entries of others'; END IF;
   -- details of the others stay hidden
   IF (SELECT count(*) FROM public.time_entry_social_context) <> 3 * 144 + 36 THEN RAISE EXCEPTION 'T03g: social contexts of others'; END IF;
   IF (SELECT count(*) FROM public.day_questionnaire) <> 3 THEN RAISE EXCEPTION 'T03h: questionnaires of others'; END IF;
   IF (SELECT count(*) FROM public.user_data) <> 1 THEN RAISE EXCEPTION 'T03i: user_data of others'; END IF;
   IF (SELECT count(*) FROM public.course_access_code) <> 0 THEN RAISE EXCEPTION 'T03j: participant reads access codes'; END IF;
   IF (SELECT count(*) FROM public.course) <> 3 THEN RAISE EXCEPTION 'T03k: course list'; END IF;
-  -- the RPC used by the comparison tab
-  IF (SELECT array_agg(x) FROM public.course_excluded_profile_ids(9001) x) <> ARRAY['5eed0000-0000-4000-8000-000000000115'::uuid] THEN
-    RAISE EXCEPTION 'T03l: excluded participants of the own course';
-  END IF;
-  IF EXISTS (SELECT 1 FROM public.course_excluded_profile_ids(9002)) THEN RAISE EXCEPTION 'T03m: exclusions of a foreign course'; END IF;
 END
 $$;
 

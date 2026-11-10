@@ -247,8 +247,11 @@ export async function buildPersonalReportPdf(input: PersonalReportInput) {
   // KPI boxes
   const deviceItems = input.metaAggregates?.devices ?? [];
   const deviceTotal = deviceItems.reduce((s, i) => s + i.minutes, 0);
-  const withoutDevice =
-    deviceItems.find((i) => i.name === "Ohne IT-Gerät")?.minutes ?? 0;
+  // Match by lookup code, not by display name: the name depends on the locale. Code "0" covers both
+  // "no device answered" and an explicit "no digital device" choice.
+  const withoutDevice = deviceItems
+    .filter((i) => i.code === "0")
+    .reduce((s, i) => s + i.minutes, 0);
   const withDevicePercent =
     deviceTotal > 0 ? Math.round(((deviceTotal - withoutDevice) / deviceTotal) * 100) : null;
   const wellbeing = input.metaAggregates?.avgSatisfactionLabel ?? "-";

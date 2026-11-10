@@ -38,7 +38,7 @@ and route checks the session itself.
 - Profile columns `role`, `email`, `is_active`, `auth_provider`, `must_change_password`,
   `switch_edu_id_sub` are writable only via `withService` (trigger `protect_profiles_auth_fields`).
 - Lookup names via `getLocalizedName(row, locale)`; logic keys off the language-neutral `code` column.
-- "Today" via `getLocalIsoDate()`, never `toISOString()`; any `ILIKE` on user input via `escapeLikePattern`.
+- "Today" via `getLocalIsoDate()`, never `toISOString()`; emails are compared with `lower(email) = $1`, never `ILIKE` on user input.
 - UI copy in `messages/{de,en}.json`, informal "du"; every light Tailwind class gets a `dark:` variant.
 - Code comments in English, concise, explaining why.
 - Local database port 15432 (54329 is in a Hyper-V reserved range on Windows).

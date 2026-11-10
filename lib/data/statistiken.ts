@@ -15,6 +15,7 @@ import {
   MIN_USERS_FOR_COMPARISON,
   buildActivityToCategory,
   buildSatisfactionRanks,
+  buildComparisonIds,
   computeCoursePool,
   normalizeDateOnly,
   type CoursePool,
@@ -27,7 +28,7 @@ type Named = { name: string; name_en: string };
 export type StatistikenLookups = {
   categories: ({ category_id: number } & Named)[];
   subcategories: ({ subcategory_id: number; category_id: number } & Named)[];
-  activities: ({ activity_id: number; subcategory_id: number } & Named)[];
+  activities: ({ activity_id: number; subcategory_id: number; code: string } & Named)[];
   mediaTypes: ({ digital_media_type_id: number; code: string } & Named)[];
   socialContexts: ({ social_context_id: number; code: string } & Named)[];
   locations: ({ location_transport_id: number; code: string } & Named)[];
@@ -105,7 +106,7 @@ async function loadLookups(db: Db): Promise<StatistikenLookups> {
     await db.query<StatistikenLookups["subcategories"][number]>(
       "SELECT subcategory_id, name, name_en, category_id FROM public.subcategory ORDER BY subcategory_id"),
     await db.query<StatistikenLookups["activities"][number]>(
-      "SELECT activity_id, name, name_en, subcategory_id FROM public.activity ORDER BY activity_id"),
+      "SELECT activity_id, name, name_en, subcategory_id, code FROM public.activity ORDER BY activity_id"),
     await db.query<StatistikenLookups["mediaTypes"][number]>(
       "SELECT digital_media_type_id, name, name_en, code FROM public.digital_media_type ORDER BY digital_media_type_id"),
     await db.query<StatistikenLookups["socialContexts"][number]>(
@@ -183,12 +184,12 @@ export async function loadComparisonSnapshot(userId: string): Promise<Comparison
       );
       const enabled = course[0]?.comparison_enabled === true;
 
-      // Submitted days of all participants of the course (as a participant could already read them)
+      // Submitted days of all participants of the course (service connection: participants can't read them)
       const submittedCourseDays = await db.query<{ day_id: number; profiles_id: string; date: string }>(
         "SELECT day_id, profiles_id, date FROM public.day WHERE course_id = $1 AND is_submitted = true ORDER BY day_id",
         [courseId],
       );
-      // Same list as course_excluded_profile_ids() returns to an enrolled viewer
+      // Participants an admin excluded from the comparison (the viewer never is)
       const excluded = await db.query<{ id: string }>(
         "SELECT profiles_id AS id FROM public.user_course WHERE course_id = $1 AND is_excluded",
         [courseId],
@@ -233,6 +234,7 @@ export async function loadComparisonSnapshot(userId: string): Promise<Comparison
           socialContextCodeById,
           locationCodeById,
           satisfactionRankById,
+          comparisonIds: buildComparisonIds(lookups.activities, lookups.mediaTypes),
         },
       };
     },

@@ -280,7 +280,7 @@ function SearchableSelect({
       <div className="relative">
         <Search
           size={16}
-          className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500"
         />
         <input
           type="text"
@@ -299,17 +299,17 @@ function SearchableSelect({
           disabled={disabled}
           className={`w-full rounded-xl border px-4 py-3 pl-9 pr-4 text-sm focus:outline-none focus:ring-2 ${
             disabled
-              ? "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+              ? "cursor-not-allowed border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500"
               : invalid
-                ? "border-red-300 bg-white text-slate-800 focus:border-red-500 focus:ring-red-500"
-                : "border-slate-300 bg-white text-slate-800 focus:border-blue-500 focus:ring-blue-500"
+                ? "border-red-300 dark:border-red-500/60 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:border-red-500 focus:ring-red-500"
+                : "border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 focus:border-blue-500 focus:ring-blue-500"
           }`}
         />
       </div>
       {open && !disabled && (
-        <div className="absolute z-20 mt-1 max-h-60 w-full overflow-y-auto scrollbar-thin rounded-xl border border-slate-200 bg-white shadow-lg">
+        <div className="absolute z-20 mt-1 max-h-60 w-full overflow-y-auto scrollbar-thin rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-lg">
           {filtered.length === 0 ? (
-            <div className="px-4 py-3 text-sm text-slate-400">
+            <div className="px-4 py-3 text-sm text-slate-400 dark:text-slate-500">
               {t("noResultsFound")}
             </div>
           ) : (
@@ -324,13 +324,13 @@ function SearchableSelect({
                 }}
                 className={`flex w-full items-center justify-between px-4 py-3 text-left text-sm transition-colors ${
                   value === String(option.id)
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-slate-700 hover:bg-blue-50"
+                    ? "bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300"
+                    : "text-slate-700 dark:text-slate-200 hover:bg-blue-50 dark:hover:bg-blue-500/15"
                 }`}
               >
                 <span>{option.localizedName}</span>
                 {value === String(option.id) && (
-                  <Check size={16} className="text-blue-600" />
+                  <Check size={16} className="text-blue-600 dark:text-blue-400" />
                 )}
               </button>
             ))
@@ -523,14 +523,14 @@ export default function ProfileDetailsForm({
             onClick={() => updateField(field, String(option.id))}
             className={`flex w-full items-center justify-between rounded-xl border-2 px-4 py-3 text-left text-sm transition-all ${
               selected
-                ? "border-blue-500 bg-blue-50 text-blue-700"
+                ? "border-blue-500 bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300"
                 : isInteractive
-                  ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-                  : "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                  ? "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                  : "cursor-not-allowed border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500"
             }`}
           >
             <span>{getLocalizedName(option, locale)}</span>
-            {selected && <Check size={18} className="text-blue-600" />}
+            {selected && <Check size={18} className="text-blue-600 dark:text-blue-400" />}
           </button>
         );
       })}
@@ -561,14 +561,14 @@ export default function ProfileDetailsForm({
               onClick={() => updateField(field, String(option.id))}
               className={`flex items-center justify-between rounded-xl border-2 px-4 py-3 text-left text-sm transition-all ${
                 selected
-                  ? "border-blue-500 bg-blue-50 text-blue-700"
+                  ? "border-blue-500 bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300"
                   : isInteractive
-                    ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-                    : "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                    ? "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                    : "cursor-not-allowed border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500"
               }`}
             >
               <span>{getLocalizedName(option, locale)}</span>
-              {selected && <Check size={18} className="text-blue-600" />}
+              {selected && <Check size={18} className="text-blue-600 dark:text-blue-400" />}
             </button>
           );
         })}
@@ -659,14 +659,14 @@ export default function ProfileDetailsForm({
             }}
             className={`flex items-center justify-between rounded-xl border-2 px-4 py-3 text-left text-sm transition-all ${
               selected
-                ? "border-blue-500 bg-blue-50 text-blue-700"
+                ? "border-blue-500 bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300"
                 : isInteractive
-                  ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-                  : "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                  ? "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                  : "cursor-not-allowed border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500"
             }`}
           >
             <span>{getLocalizedName(option, locale)}</span>
-            {selected && <Check size={18} className="text-blue-600" />}
+            {selected && <Check size={18} className="text-blue-600 dark:text-blue-400" />}
           </button>
         );
       })}
@@ -713,7 +713,8 @@ export default function ProfileDetailsForm({
         employmentStatusIds: formData.employmentStatusIds.map((id) => parseInt(id, 10)),
       });
       if (saveProfileError) {
-        throw new Error(saveProfileError);
+        // the server only returns an error code; details are in the server log
+        throw new Error(t("unknownError"));
       }
 
       savedFormData.current = JSON.stringify(formData);
@@ -745,8 +746,8 @@ export default function ProfileDetailsForm({
   if (loading) {
     return (
       <div className="flex items-center justify-center py-16">
-        <Loader2 size={28} className="animate-spin text-blue-600" />
-        <span className="ml-3 text-slate-500">{t("loadingProfile")}</span>
+        <Loader2 size={28} className="animate-spin text-blue-600 dark:text-blue-400" />
+        <span className="ml-3 text-slate-500 dark:text-slate-400">{t("loadingProfile")}</span>
       </div>
     );
   }
@@ -817,7 +818,7 @@ export default function ProfileDetailsForm({
       <div className="rounded-xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
         <div className="sticky top-0 z-20 flex items-start justify-between gap-4 rounded-t-xl border-b border-slate-200 bg-white px-6 py-4 dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center gap-3">
-            <User className="text-blue-600" size={28} />
+            <User className="text-blue-600 dark:text-blue-400" size={28} />
             <div>
               <h2 className="text-xl font-semibold text-slate-800 dark:text-slate-100">
                 {t("title")}
@@ -841,7 +842,7 @@ export default function ProfileDetailsForm({
                 </span>
               )}
               {saveError && (
-                <span className="text-sm font-medium text-red-600">
+                <span className="text-sm font-medium text-red-600 dark:text-red-400">
                   {saveError}
                 </span>
               )}
@@ -879,9 +880,9 @@ export default function ProfileDetailsForm({
                 className={`w-full rounded-xl border-2 px-4 py-3 text-sm focus:outline-none focus:ring-2 ${
                   isInteractive
                     ? hasMissingField("firstName")
-                      ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                      : "border-slate-200 focus:border-blue-500 focus:ring-blue-500"
-                    : "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                      ? "border-red-300 dark:border-red-500/60 focus:border-red-500 focus:ring-red-500"
+                      : "border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
+                    : "cursor-not-allowed border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500"
                 }`}
               />,
             )}
@@ -900,9 +901,9 @@ export default function ProfileDetailsForm({
                 className={`w-full rounded-xl border-2 px-4 py-3 text-sm focus:outline-none focus:ring-2 ${
                   isInteractive
                     ? hasMissingField("lastName")
-                      ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                      : "border-slate-200 focus:border-blue-500 focus:ring-blue-500"
-                    : "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                      ? "border-red-300 dark:border-red-500/60 focus:border-red-500 focus:ring-red-500"
+                      : "border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
+                    : "cursor-not-allowed border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500"
                 }`}
               />,
             )}
@@ -934,9 +935,9 @@ export default function ProfileDetailsForm({
                 className={`w-full rounded-xl border-2 px-4 py-3 text-sm focus:outline-none focus:ring-2 ${
                   isInteractive
                     ? hasMissingField("age")
-                      ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                      : "border-slate-200 focus:border-blue-500 focus:ring-blue-500"
-                    : "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                      ? "border-red-300 dark:border-red-500/60 focus:border-red-500 focus:ring-red-500"
+                      : "border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
+                    : "cursor-not-allowed border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500"
                 }`}
               />,
             )}
@@ -968,15 +969,15 @@ export default function ProfileDetailsForm({
                       }
                       className={`flex w-full items-center justify-between rounded-xl border-2 px-4 py-3 text-left text-sm transition-all ${
                         selected
-                          ? "border-blue-500 bg-blue-50 text-blue-700"
+                          ? "border-blue-500 bg-blue-50 dark:bg-blue-500/15 text-blue-700 dark:text-blue-300"
                           : isInteractive
-                            ? "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50"
-                            : "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                            ? "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 hover:border-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700"
+                            : "cursor-not-allowed border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500"
                       }`}
                     >
                       <span>{option.label}</span>
                       {selected && (
-                        <Check size={18} className="text-blue-600" />
+                        <Check size={18} className="text-blue-600 dark:text-blue-400" />
                       )}
                     </button>
                   );
@@ -1038,9 +1039,9 @@ export default function ProfileDetailsForm({
                 className={`w-full rounded-xl border-2 px-4 py-3 text-sm focus:outline-none focus:ring-2 ${
                   isInteractive
                     ? hasMissingField("weeklyWorkHours")
-                      ? "border-red-300 focus:border-red-500 focus:ring-red-500"
-                      : "border-slate-200 focus:border-blue-500 focus:ring-blue-500"
-                    : "cursor-not-allowed border-slate-200 bg-slate-100 text-slate-400"
+                      ? "border-red-300 dark:border-red-500/60 focus:border-red-500 focus:ring-red-500"
+                      : "border-slate-200 dark:border-slate-700 focus:border-blue-500 focus:ring-blue-500"
+                    : "cursor-not-allowed border-slate-200 dark:border-slate-700 bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500"
                 }`}
               />,
             )}

@@ -51,7 +51,7 @@ async function main() {
   const six = e1.data!.find((e) => e.start_time === "06:00:00")!;
   assert.deepEqual(six.time_entry_digital_media_type, [{ digital_media_type_id: media }]);
   assert.deepEqual(six.time_entry_social_context, [{ social_context_id: social }]);
-  console.log("ok partial save with junction rows (same nesting as supabase-js)");
+  console.log("ok partial save with junction rows");
 
   // 3. overwrite one slot with another activity: replaced, not duplicated, old junction rows gone
   const r2 = await z.saveSlotEntries(P1, { ...base, date: "2026-11-05", slots: ["06:00"], primary_activity_id: act2 });

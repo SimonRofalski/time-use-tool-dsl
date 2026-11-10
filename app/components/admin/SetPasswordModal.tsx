@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { generateTemporaryPassword } from "@/lib/temporary-password";
 
 // Nutzeruebersicht: an admin sets a temporary password via /api/admin/users/set-password. The user must
 // change it at the next login. For an edu-ID account this turns it into a password account, so the
@@ -14,11 +15,6 @@ type SetPasswordModalProps = {
   onClose: () => void;
   onSaved: () => void;
 };
-
-/** Suggestion for the temporary password field (10 base-36 characters); the user replaces it anyway. */
-function generateRandomPassword(): string {
-  return Math.random().toString(36).slice(-5) + Math.random().toString(36).slice(-5);
-}
 
 export default function SetPasswordModal({
   userId,
@@ -140,7 +136,7 @@ export default function SetPasswordModal({
                 />
                 <button
                   type="button"
-                  onClick={() => setTemporaryPassword(generateRandomPassword())}
+                  onClick={() => setTemporaryPassword(generateTemporaryPassword())}
                   className="whitespace-nowrap rounded-md border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-600"
                 >
                   {t("generateButton")}

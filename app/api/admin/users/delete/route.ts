@@ -48,9 +48,11 @@ export async function POST(request: NextRequest) {
     // Deleting the login account cascades to the profile and all data of the person
     await withService((db) => db.query("DELETE FROM public.app_user WHERE id = $1", [targetId]));
   } catch (error) {
-    // a table referencing profiles.id without ON DELETE CASCADE -> clear 409 instead of a bare 500
+    // Database details stay in the server log; the browser gets a translated message only.
+    // 23503 = a table referencing profiles.id without ON DELETE CASCADE -> 409
+    console.error("delete user failed", error);
     if (pgErrorCode(error) === "23503") {
-      return NextResponse.json({ error: error instanceof Error ? error.message : t("deleteFailed") }, { status: 409 });
+      return NextResponse.json({ error: t("deleteFailed") }, { status: 409 });
     }
     return NextResponse.json({ error: t("deleteFailed") }, { status: 400 });
   }

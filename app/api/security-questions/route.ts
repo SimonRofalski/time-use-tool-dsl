@@ -110,10 +110,9 @@ export async function POST(request: NextRequest) {
         );
       });
     } catch (error) {
-      return NextResponse.json(
-        { error: error instanceof Error ? error.message : t("internalError") },
-        { status: 400 },
-      );
+      // Database details stay in the server log; the browser gets a translated message only
+      console.error("saving security questions failed", error);
+      return NextResponse.json({ error: t("internalError") }, { status: 400 });
     }
 
     return NextResponse.json({ success: true });

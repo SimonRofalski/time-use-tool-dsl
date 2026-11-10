@@ -212,7 +212,9 @@ export async function saveSlotEntries(userId: string, input: SlotEntryInput): Pr
           );
         } catch (error) {
           await db.query("ROLLBACK TO SAVEPOINT create_day");
-          return { ok: false as const, error: "day_create" as const, message: error instanceof Error ? error.message : "unknown" };
+          // Database details go to the server log only, never to the browser
+          console.error("creating the day failed", error);
+          return { ok: false as const, error: "day_create" as const, message: "" };
         }
       }
 
@@ -258,7 +260,8 @@ export async function saveSlotEntries(userId: string, input: SlotEntryInput): Pr
       return { ok: true as const, dayId: day.day_id, becameComplete };
     });
   } catch (error) {
-    return { ok: false, error: "save", message: error instanceof Error ? error.message : "unknown" };
+    console.error("saving time entries failed", error);
+    return { ok: false, error: "save", message: "" };
   }
 }
 
@@ -331,6 +334,7 @@ export async function saveDayQuestionnaire(userId: string, input: DayQuestionnai
     );
     return { error: null };
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "unknown" };
+    console.error("saving the day questionnaire failed", error);
+    return { error: "save_failed" };
   }
 }

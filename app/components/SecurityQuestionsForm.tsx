@@ -161,15 +161,10 @@ export default function SecurityQuestionsForm({
       }));
 
       // the session cookie authenticates the requests
-      const authHeaders = {};
-
       const response = await fetch("/api/security-questions", {
         method: "POST",
         credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-          ...authHeaders,
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ answers: payload }),
       });
 
@@ -192,13 +187,15 @@ export default function SecurityQuestionsForm({
       const verifyResponse = await fetch("/api/security-questions", {
         method: "GET",
         credentials: "include",
-        headers: authHeaders,
       });
 
-      const verifyResult = (await verifyResponse.json()) as {
-        hasCompleted?: boolean;
-        error?: string;
-      };
+      // A non-JSON answer (e.g. a proxy error page) counts as "not verified"
+      let verifyResult: { hasCompleted?: boolean; error?: string } = {};
+      try {
+        verifyResult = (await verifyResponse.json()) as typeof verifyResult;
+      } catch {
+        verifyResult = {};
+      }
 
       if (!verifyResponse.ok || verifyResult.hasCompleted !== true) {
         setSaveError(verifyResult.error ?? t("verifyFailedError"));
@@ -218,10 +215,9 @@ export default function SecurityQuestionsForm({
         setIsEditing(false);
       }
       await onSaved?.();
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : t("networkError");
-      setSaveError(message);
+    } catch {
+      // only fetch itself can throw here (no connection)
+      setSaveError(t("networkError"));
     } finally {
       setSaving(false);
     }

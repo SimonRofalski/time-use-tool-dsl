@@ -188,8 +188,9 @@ function getPreloadedEntry(
   if (matchingEntries.length !== slotList.length) return null;
 
   // All slots filled: only pre-load if every entry has identical activity data
-  // (social contexts are not compared; the first entry's are taken over)
   const first = matchingEntries[0];
+  const sameIds = (a: number[], b: number[]) =>
+    JSON.stringify([...a].sort()) === JSON.stringify([...b].sort());
   const allIdentical = matchingEntries.every(
     (e) =>
       e.primary_activity_id === first.primary_activity_id &&
@@ -200,8 +201,8 @@ function getPreloadedEntry(
       e.location_transport_id === first.location_transport_id &&
       e.digital_media_used === first.digital_media_used &&
       e.ict_attention_id === first.ict_attention_id &&
-      JSON.stringify([...e.digital_media_type_ids].sort()) ===
-        JSON.stringify([...first.digital_media_type_ids].sort()),
+      sameIds(e.digital_media_type_ids, first.digital_media_type_ids) &&
+      sameIds(e.social_context_ids, first.social_context_ids),
   );
 
   if (!allIdentical) return null;
@@ -387,7 +388,7 @@ function CompletionBar({
           className="relative flex flex-col items-center justify-center overflow-hidden rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-1 py-1 transition-colors hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-35 sm:block sm:px-4 sm:py-1.5 sm:text-right"
         >
           {/* Mobile: arrow + short date */}
-          <span className="text-2xl font-light leading-none text-slate-400 select-none sm:hidden">
+          <span className="text-2xl font-light leading-none text-slate-400 dark:text-slate-500 select-none sm:hidden">
             ‹
           </span>
           {previousDate && (
@@ -396,7 +397,7 @@ function CompletionBar({
             </span>
           )}
           {/* Desktop: label + full date */}
-          <span className="pointer-events-none absolute left-1 top-1/2 hidden -translate-y-1/2 text-5xl font-light text-slate-400 select-none leading-none sm:block">
+          <span className="pointer-events-none absolute left-1 top-1/2 hidden -translate-y-1/2 text-5xl font-light text-slate-400 dark:text-slate-500 select-none leading-none sm:block">
             ‹
           </span>
           <p className="relative hidden text-[10px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500 sm:block">
@@ -437,7 +438,7 @@ function CompletionBar({
           className="relative flex flex-col items-center justify-center overflow-hidden rounded-md border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 px-1 py-1 transition-colors hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-35 sm:block sm:px-4 sm:py-1.5 sm:text-left"
         >
           {/* Mobile: arrow + short date */}
-          <span className="text-2xl font-light leading-none text-slate-400 select-none sm:hidden">
+          <span className="text-2xl font-light leading-none text-slate-400 dark:text-slate-500 select-none sm:hidden">
             ›
           </span>
           {nextDate && (
@@ -446,7 +447,7 @@ function CompletionBar({
             </span>
           )}
           {/* Desktop: label + full date */}
-          <span className="pointer-events-none absolute right-1 top-1/2 hidden -translate-y-1/2 text-5xl font-light text-slate-400 select-none leading-none sm:block">
+          <span className="pointer-events-none absolute right-1 top-1/2 hidden -translate-y-1/2 text-5xl font-light text-slate-400 dark:text-slate-500 select-none leading-none sm:block">
             ›
           </span>
           <p className="relative hidden text-[10px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500 sm:block">
@@ -498,7 +499,7 @@ function IdlePlaceholder() {
       <p className="text-base font-semibold text-slate-700 dark:text-slate-200">
         {t("idlePlaceholder.title")}
       </p>
-      <p className="mt-2 text-sm text-slate-400 leading-relaxed">
+      <p className="mt-2 text-sm text-slate-400 dark:text-slate-500 leading-relaxed">
         {t("idlePlaceholder.line1")}
         <br className="hidden sm:block" /> {t("idlePlaceholder.line2")}
       </p>
@@ -781,14 +782,13 @@ export default function ZeiterfassungPage() {
   // --- Questionnaire logic ---
 
   // Merges step data into pendingEntry and advances to next step (or saves).
-  // Control flags may come with the data: _advance = go to the next step
-  // (sent by multi-select steps), _save = save right away (no caller sends it).
+  // Control flag that may come with the data: _advance = go to the next step
+  // (sent by multi-select steps and the rating screen's save button).
   function handleStepComplete(stepData: Partial<PendingEntry>) {
     if (!pendingEntry || !currentStep) return;
 
-    const shouldSave = (stepData as any)._save === true;
     const isAdvance = (stepData as any)._advance === true;
-    const { _save, _advance, ...cleanData } = stepData as any;
+    const { _advance, ...cleanData } = stepData as any;
     const updatedEntry: PendingEntry = { ...pendingEntry, ...cleanData };
 
     // social_context and digital_media_type toggles fire onStepComplete for state
@@ -802,8 +802,7 @@ export default function ZeiterfassungPage() {
       (currentStep === "social_context" ||
         currentStep === "digital_media_type" ||
         (currentStep === "satisfaction" && askExtraRatings)) &&
-      !isAdvance &&
-      !shouldSave;
+      !isAdvance;
 
     if (isIntermediateUpdate) {
       setPendingEntry(updatedEntry);
@@ -813,11 +812,6 @@ export default function ZeiterfassungPage() {
     setPendingEntry(updatedEntry);
     // Once the user actively advances a step, treat as unsaved new progress
     setPendingIsExisting(false);
-
-    if (shouldSave) {
-      saveEntry(updatedEntry);
-      return;
-    }
 
     const nextStep = getNextStep(currentStep, updatedEntry);
     if (nextStep === null) {
@@ -882,30 +876,6 @@ export default function ZeiterfassungPage() {
   }, [scene]);
 
   // --- Deleting and reselecting ---
-
-  // Deletes the saved entries of the current selection and closes the questionnaire
-  async function handleDeleteSelectedEntries() {
-    if (selectedSlots.size === 0) return;
-
-    // If no day exists yet, there is nothing persisted to remove.
-    if (dayId === null) {
-      handleCancel();
-      return;
-    }
-
-    setIsDeletingSelection(true);
-    try {
-      // delete + day status in one transaction (deleting never completes a day)
-      const result = await deleteSlotEntries(dayId, [...selectedSlots].sort());
-      if (!result.ok) throw new Error("delete failed");
-      await loadEntriesForDay(dayId);
-      handleCancel();
-    } catch {
-      setErrorMessage(t("deleteError"));
-    } finally {
-      setIsDeletingSelection(false);
-    }
-  }
 
   // Deletes one row of ActivitySelector's selection overview; the selection stays open
   async function handleDeleteSlots(slots: string[]) {
@@ -1048,7 +1018,7 @@ export default function ZeiterfassungPage() {
   if (errorMessage) {
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-        <p className="text-sm text-red-600">{errorMessage}</p>
+        <p className="text-sm text-red-600 dark:text-red-400">{errorMessage}</p>
       </div>
     );
   }
@@ -1117,7 +1087,7 @@ export default function ZeiterfassungPage() {
               onClick={() => setGridCollapsed((v) => !v)}
             >
               <span>{t("gridToggle.label")}</span>
-              <span className="text-slate-400 text-xs">
+              <span className="text-slate-400 dark:text-slate-500 text-xs">
                 {gridCollapsed
                   ? t("gridToggle.expand")
                   : t("gridToggle.collapse")}
@@ -1158,10 +1128,8 @@ export default function ZeiterfassungPage() {
               lookupData={lookupData}
               onStepComplete={scene ? noop : handleStepComplete}
               onBack={scene ? noop : handleBack}
-              onDeleteSelection={scene ? noop : handleDeleteSelectedEntries}
               onDeleteSlots={scene ? async () => {} : handleDeleteSlots}
               onReselectSlots={scene ? noop : handleReselectSlots}
-              showDeleteSelection={shownSelectedSlots.size > 0}
               isDeletingSelection={isDeletingSelection}
               askExtraRatings={askExtraRatings}
               askIctAttention={askIctAttention}
@@ -1177,18 +1145,18 @@ export default function ZeiterfassungPage() {
       {/* Abandon-progress confirmation dialog */}
       {abandonDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-2xl border border-slate-200 bg-white p-6 shadow-2xl">
-            <h2 className="text-base font-semibold text-slate-900">
+          <div className="w-full max-w-sm rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-6 shadow-2xl">
+            <h2 className="text-base font-semibold text-slate-900 dark:text-slate-100">
               {t("abandonDialog.title")}
             </h2>
-            <p className="mt-2 text-sm text-slate-500">
+            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
               {t("abandonDialog.description")}
             </p>
             <div className="mt-5 flex justify-end gap-2">
               <button
                 type="button"
                 onClick={() => setAbandonDialog(null)}
-                className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors"
+                className="rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
               >
                 {t("abandonDialog.continueButton")}
               </button>

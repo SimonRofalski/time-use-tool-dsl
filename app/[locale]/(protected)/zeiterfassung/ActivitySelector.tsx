@@ -119,10 +119,8 @@ type ActivitySelectorProps = {
   lookupData: LookupData;
   onStepComplete: (data: Partial<PendingEntry>) => void;
   onBack: () => void;
-  onDeleteSelection: () => void | Promise<void>;
   onDeleteSlots: (slots: string[]) => Promise<void>;
   onReselectSlots: (slots: string[]) => void;
-  showDeleteSelection: boolean;
   isDeletingSelection?: boolean;
   askExtraRatings: boolean;
   askIctAttention: boolean;
@@ -292,37 +290,6 @@ function minutesToSlot(minutes: number): string {
     .padStart(2, "0")}:${(normalized % 60).toString().padStart(2, "0")}`;
 }
 
-// Groups contiguous 10-minute slots into compact ranges: ["08:00 - 09:30", "12:00 - 12:20"]
-function formatMergedSlotRanges(slots: Set<string>): string[] {
-  if (slots.size === 0) return [];
-
-  const sortedMinutes = [...slots].map(slotToMinutes).sort((a, b) => a - b);
-
-  const ranges: Array<{ start: number; endExclusive: number }> = [];
-  let start = sortedMinutes[0];
-  let previous = sortedMinutes[0];
-
-  for (let i = 1; i < sortedMinutes.length; i++) {
-    const current = sortedMinutes[i];
-    if (current === previous + 10) {
-      previous = current;
-      continue;
-    }
-
-    ranges.push({ start, endExclusive: previous + 10 });
-    start = current;
-    previous = current;
-  }
-
-  ranges.push({ start, endExclusive: previous + 10 });
-
-  return ranges.map((range) => {
-    const startText = minutesToSlot(range.start);
-    const endText = minutesToSlot(range.endExclusive);
-    return `${startText} - ${endText}`;
-  });
-}
-
 function findActivityById(
   lookupData: LookupData,
   activityId: number | null,
@@ -412,6 +379,8 @@ function buildSelectedSlotGroups(
       l: entry.location_transport_id,
       sc: [...entry.social_context_ids].sort((a, b) => a - b),
       sat: entry.satisfaction_id,
+      m: entry.meaningfulness_id,
+      st: entry.stressfulness_id,
     });
   }
 
@@ -804,10 +773,8 @@ export default function ActivitySelector({
   lookupData,
   onStepComplete,
   onBack,
-  onDeleteSelection,
   onDeleteSlots,
   onReselectSlots,
-  showDeleteSelection,
   isDeletingSelection = false,
   askExtraRatings,
   askIctAttention,
@@ -857,30 +824,10 @@ export default function ActivitySelector({
 
   // --- Derived data for the header, overview and step screens ---
   const hierarchy = buildActivityHierarchy(lookupData, searchQuery, locale);
-  const activeBrowsingCategory = hierarchy.find(
-    (category) => category.category_id === activeCategoryId,
-  );
-  const mergedSlotRanges = formatMergedSlotRanges(selectedSlots);
   const selectedSlotGroups = buildSelectedSlotGroups(
     selectedSlots,
     existingEntries,
   );
-  const uniqueSelectedSignatures = new Set(
-    selectedSlotGroups.map((group) =>
-      group.entry
-        ? JSON.stringify({
-            p: group.entry.primary_activity_id,
-            s: group.entry.secondary_activity_id,
-            dm: group.entry.digital_media_used,
-            dmt: [...group.entry.digital_media_type_ids].sort((a, b) => a - b),
-            l: group.entry.location_transport_id,
-            sc: [...group.entry.social_context_ids].sort((a, b) => a - b),
-            sat: group.entry.satisfaction_id,
-          })
-        : "__empty__",
-    ),
-  );
-  const hasMixedSelectionContent = uniqueSelectedSignatures.size > 1;
 
   const primaryActivity = findActivityById(
     lookupData,
@@ -894,44 +841,6 @@ export default function ActivitySelector({
     lookupData,
     pendingEntry.primary_activity_id,
   );
-  const secondaryCategory = findCategoryForActivity(
-    lookupData,
-    pendingEntry.secondary_activity_id,
-  );
-
-  const locationName = findNameById(
-    lookupData.locationTransports,
-    "location_transport_id",
-    pendingEntry.location_transport_id,
-    locale,
-  );
-  const satisfactionName = findNameById(
-    lookupData.satisfactions,
-    "satisfaction_id",
-    pendingEntry.satisfaction_id,
-    locale,
-  );
-
-  const socialContextNames = lookupData.socialContexts
-    .filter((item) =>
-      pendingEntry.social_context_ids.includes(item.social_context_id),
-    )
-    .map((item) => getLocalizedName(item, locale));
-
-  const digitalMediaTypeNames = lookupData.digitalMediaTypes
-    .filter((item) =>
-      pendingEntry.digital_media_type_ids.includes(item.digital_media_type_id),
-    )
-    .map((item) => getLocalizedName(item, locale));
-
-  const ictAttentionOption = shouldAskIctAttention(askIctAttention, pendingEntry)
-    ? lookupData.ictAttentions.find(
-        (item) => item.ict_attention_id === pendingEntry.ict_attention_id,
-      )
-    : undefined;
-  const ictAttentionName = ictAttentionOption
-    ? getLocalizedName(ictAttentionOption, locale)
-    : null;
 
   // --- Step content renderers ---
 
@@ -1912,158 +1821,11 @@ export default function ActivitySelector({
       )}
 
       {/* Selection overview (selection contains saved entries): time-ordered
-          rows with edit/delete. The summary cards in the first block are
-          rendered with "hidden" and not visible. */}
+          rows with edit/delete. */}
       {hasAnyExistingEntryInSelection && !isEditorVisible && (
         <div className="mx-4 mb-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/70 dark:bg-slate-900/60 p-3">
-          <div className="hidden">
-            <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2 xl:col-span-1">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                {t("overview.timeLabel")}
-              </p>
-              <div className="mt-1.5 flex max-h-36 flex-wrap gap-1.5 overflow-auto pr-1">
-                {mergedSlotRanges.length > 0 ? (
-                  mergedSlotRanges.map((range) => (
-                    <span
-                      key={range}
-                      className="inline-flex items-center gap-1.5 rounded-md bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 text-xs font-medium text-blue-700 dark:text-blue-300 ring-1 ring-blue-100 dark:ring-blue-800/30"
-                    >
-                      <Clock3 className="h-3.5 w-3.5" />
-                      {range}
-                    </span>
-                  ))
-                ) : (
-                  <p className="text-xs text-slate-400">{t("overview.noTimeSlots")}</p>
-                )}
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2 xl:col-span-1">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                {t("overview.categoryLabel")}
-              </p>
-              <div className="mt-1.5 flex flex-wrap gap-1.5">
-                {primaryCategory && (
-                  <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-100">
-                    <BookOpen className="h-3.5 w-3.5" />
-                    {t("overview.mainCategory", { name: getLocalizedName(primaryCategory, locale) })}
-                  </span>
-                )}
-                {activeBrowsingCategory && !primaryCategory && (
-                  <span className="inline-flex items-center gap-1.5 rounded-md bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-700 ring-1 ring-sky-100">
-                    <BookOpen className="h-3.5 w-3.5" />
-                    {t("overview.selectedCategory", { name: activeBrowsingCategory.name })}
-                  </span>
-                )}
-                {primaryActivity && (
-                  <span className="inline-flex items-center gap-1.5 rounded-md bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700 ring-1 ring-emerald-100">
-                    <Briefcase className="h-3.5 w-3.5" />
-                    {t("overview.mainActivity", { name: getLocalizedName(primaryActivity, locale) })}
-                  </span>
-                )}
-                {secondaryCategory && (
-                  <span className="inline-flex items-center gap-1.5 rounded-md bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700 ring-1 ring-teal-100">
-                    <BookOpen className="h-3.5 w-3.5" />
-                    {t("overview.secondaryCategory", { name: getLocalizedName(secondaryCategory, locale) })}
-                  </span>
-                )}
-                {secondaryActivity && (
-                  <span className="inline-flex items-center gap-1.5 rounded-md bg-teal-50 px-2 py-0.5 text-xs font-medium text-teal-700 ring-1 ring-teal-100">
-                    <Briefcase className="h-3.5 w-3.5" />
-                    {t("overview.secondaryActivity", { name: getLocalizedName(secondaryActivity, locale) })}
-                  </span>
-                )}
-                {!primaryCategory &&
-                  !primaryActivity &&
-                  !secondaryCategory &&
-                  !secondaryActivity && (
-                    <p className="text-xs text-slate-400">
-                      {t("overview.nothingSelected")}
-                    </p>
-                  )}
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2 xl:col-span-1">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                {t("overview.contextLabel")}
-              </p>
-              <div className="mt-1.5 flex flex-wrap gap-1.5">
-                {locationName && (
-                  <span className="inline-flex items-center gap-1.5 rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-amber-100">
-                    <MapPin className="h-3.5 w-3.5" />
-                    {t("overview.locationTransport", { name: locationName })}
-                  </span>
-                )}
-                {socialContextNames.map((name) => (
-                  <span
-                    key={name}
-                    className="inline-flex items-center gap-1.5 rounded-md bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700 ring-1 ring-amber-100"
-                  >
-                    <Users className="h-3.5 w-3.5" />
-                    {t("overview.social", { name })}
-                  </span>
-                ))}
-                {!locationName && socialContextNames.length === 0 && (
-                  <p className="text-xs text-slate-400">
-                    {t("overview.nothingSelected")}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2 xl:col-span-1">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                {t("overview.mediaLabel")}
-              </p>
-              <div className="mt-1.5 flex flex-wrap gap-1.5">
-                {digitalMediaTypeNames.map((name) => (
-                  <span
-                    key={name}
-                    className="inline-flex items-center gap-1.5 rounded-md bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700 ring-1 ring-violet-100"
-                  >
-                    <Smartphone className="h-3.5 w-3.5" />
-                    {name}
-                  </span>
-                ))}
-                {ictAttentionName && (
-                  <span className="inline-flex items-center gap-1.5 rounded-md bg-violet-50 px-2 py-0.5 text-xs font-medium text-violet-700 ring-1 ring-violet-100">
-                    <Target className="h-3.5 w-3.5" />
-                    {ictAttentionName}
-                  </span>
-                )}
-                {digitalMediaTypeNames.length === 0 && (
-                  <p className="text-xs text-slate-400">
-                    {t("overview.nothingSelected")}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="rounded-lg border border-slate-200 bg-white px-2.5 py-2 xl:col-span-1">
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                {t("overview.moodLabel")}
-              </p>
-              <div className="mt-1.5 flex flex-wrap gap-1.5">
-                {satisfactionName ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-md bg-rose-50 px-2 py-0.5 text-xs font-medium text-rose-700 ring-1 ring-rose-100">
-                    <Heart className="h-3.5 w-3.5" />
-                    {satisfactionName}
-                  </span>
-                ) : (
-                  <p className="text-xs text-slate-400">
-                    {t("overview.nothingSelected")}
-                  </p>
-                )}
-              </div>
-            </div>
-          </div>
-
           {selectedSlotGroups.length > 0 && (
             <div className="mt-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-2.5 py-2">
-              <p className="hidden text-[11px] font-semibold uppercase tracking-wide text-slate-500">
-                {t("overview.timeOrderedListing")}
-              </p>
               <div className="mt-2 space-y-1.5">
                 {selectedSlotGroups.map((group, index) => {
                   const timeRange = `${minutesToSlot(group.start)} - ${minutesToSlot(group.endExclusive)}`;

@@ -50,7 +50,8 @@ import type {
   ActivityMetaStats,
 } from "./types";
 import { CATEGORY_COLORS } from "../zeiterfassung/types";
-import { satisfactionLevelForLabel } from "./satisfaction";
+import { parseSatisfactionLabel, satisfactionLevelForLabel } from "./satisfaction";
+import type { DayFilterMode } from "@/lib/statistiken/comparison";
 
 // --- Constants ---
 
@@ -107,8 +108,6 @@ function getCategoryColorById(categoryId: number): string {
   if (categoryId <= 0) return "#94A3B8";
   return CATEGORY_COLORS[(categoryId - 1) % CATEGORY_COLORS.length];
 }
-
-type DayFilterMode = "alle" | "werktage" | "wochenende";
 
 // Icon helpers keyed by the language-neutral lookup-table `code` column (mirrors
 // ActivitySelector.tsx's *_VISUAL_BY_CODE maps); display names are locale-dependent.
@@ -181,8 +180,8 @@ function ChartTooltip({
   if (isUnsubmitted) {
     return (
       <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2 shadow-lg text-xs">
-        <p className="font-semibold text-slate-700">{label}</p>
-        <p className="mt-1 text-slate-400">{t("chart.notSubmitted")}</p>
+        <p className="font-semibold text-slate-700 dark:text-slate-200">{label}</p>
+        <p className="mt-1 text-slate-400 dark:text-slate-500">{t("chart.notSubmitted")}</p>
       </div>
     );
   }
@@ -225,19 +224,6 @@ function buildPair(leftMinutes: number, rightMinutes: number) {
     leftPercent,
     rightPercent: 100 - leftPercent,
   };
-}
-
-// Parses "4.1 / 5 (82%)" into value and scale maximum (same format as satisfaction.ts)
-function parseSatisfactionLabel(
-  label?: string,
-): { value: number; max: number } | null {
-  if (!label) return null;
-  const match = label.match(/^([\d.]+)\s*\/\s*([\d.]+)/);
-  if (!match) return null;
-  const value = Number(match[1]);
-  const max = Number(match[2]);
-  if (!Number.isFinite(value) || !Number.isFinite(max) || max <= 0) return null;
-  return { value, max };
 }
 
 // Same five levels as in the Zeiterfassung: average rounded to the nearest level
@@ -312,7 +298,7 @@ function PairCell({
         <p className={`text-xs font-semibold ${textClass}`}>
           {pair.leftPercent}% / {pair.rightPercent}%
         </p>
-        <p className="text-[9px] text-slate-400">
+        <p className="text-[9px] text-slate-400 dark:text-slate-500">
           {leftLabel} / {rightLabel}
         </p>
       </div>
@@ -359,7 +345,6 @@ function SatisfactionCell({
 // One subcategory row of the drill-down table plus its activity rows (when expanded)
 function SubcategoryAccordion({
   sub,
-  totalMinutes,
   color,
   showActivityMeta,
   viewMode,
@@ -367,7 +352,6 @@ function SubcategoryAccordion({
   onToggle,
 }: {
   sub: SubcategoryRow;
-  totalMinutes: number;
   color: string;
   showActivityMeta: boolean;
   viewMode: "total" | "avgPerDay";
@@ -396,12 +380,12 @@ function SubcategoryAccordion({
               sub.isExpanded ? (
                 <ChevronDown
                   size={14}
-                  className="flex-shrink-0 text-slate-400"
+                  className="flex-shrink-0 text-slate-400 dark:text-slate-500"
                 />
               ) : (
                 <ChevronRight
                   size={14}
-                  className="flex-shrink-0 text-slate-400"
+                  className="flex-shrink-0 text-slate-400 dark:text-slate-500"
                 />
               )
             ) : (
@@ -656,12 +640,6 @@ export default function ZeitverteilungTab({
     categoryColorMap[row.name] = getCategoryColorById(row.categoryId);
   });
 
-  // Total tracked minutes across all categories (for display in the table header)
-  const grandTotalMinutes = categoryRows.reduce(
-    (sum, row) => sum + row.totalMinutes,
-    0,
-  );
-
   const sortedCategoryRows = [...categoryRows].sort((a, b) => {
     let cmp = 0;
     if (sortColumn === "name") cmp = a.name.localeCompare(b.name, locale);
@@ -688,7 +666,7 @@ export default function ZeitverteilungTab({
       <div className="flex flex-col gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:flex-wrap">
         {/* Day filter */}
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 shrink-0">
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 shrink-0">
             {t("dayFilter.label")}
           </span>
           <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-0.5">
@@ -736,7 +714,7 @@ export default function ZeitverteilungTab({
         {/* KW filter */}
         {weekOptions.length > 0 && (
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 shrink-0">
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 shrink-0">
               {t("weekFilter.label")}
             </span>
             <button
@@ -772,12 +750,12 @@ export default function ZeitverteilungTab({
 
       {/* --- Stacked bar chart --- */}
       <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 shadow-sm">
-        <h3 className="mb-3 text-sm font-semibold text-slate-700">
+        <h3 className="mb-3 text-sm font-semibold text-slate-700 dark:text-slate-200">
           {t("chart.title")}
         </h3>
 
         {barData.length === 0 ? (
-          <p className="text-sm text-slate-400 text-center py-8">
+          <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-8">
             {t("chart.noDays")}
           </p>
         ) : (
@@ -853,7 +831,7 @@ export default function ZeitverteilungTab({
                     backgroundColor: categoryColorMap[name] ?? "#94A3B8",
                   }}
                 />
-                <span className="text-[11px] text-slate-500">{name}</span>
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">{name}</span>
               </div>
             ))}
           </div>
@@ -895,18 +873,18 @@ export default function ZeitverteilungTab({
           noDataLabel={t("metaLists.noData")}
         />
         <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3">
-          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+          <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
             {t("metaLists.wellbeingTitle")}
           </p>
           <div className="flex items-center gap-2">
             <span className="text-xl leading-none" aria-hidden="true">
               {getSatisfactionEmoji(metaAggregates?.avgSatisfactionLabel)}
             </span>
-            <p className="text-sm font-semibold text-slate-700">
+            <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">
               {metaAggregates?.avgSatisfactionLabel ?? "-"}
             </p>
           </div>
-          <p className="mt-1 text-[10px] text-slate-400">
+          <p className="mt-1 text-[10px] text-slate-400 dark:text-slate-500">
             {t("metaLists.wellbeingSubtitle")}
           </p>
         </div>
@@ -915,7 +893,7 @@ export default function ZeitverteilungTab({
       {/* --- Drill-down table --- */}
       <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm overflow-hidden">
         <div className="px-5 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-2">
-          <h3 className="text-sm font-semibold text-slate-700">
+          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
             {t("table.title")}
           </h3>
           <div className="flex flex-wrap items-center gap-2">
@@ -958,14 +936,14 @@ export default function ZeitverteilungTab({
         </div>
 
         {categoryRows.length === 0 ? (
-          <p className="text-sm text-slate-400 text-center py-8">
+          <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-8">
             {t("table.noEntries")}
           </p>
         ) : (
           <table className="w-full">
             <thead>
               <tr className="border-b border-slate-100 dark:border-slate-700">
-                <th className="py-2.5 pl-4 pr-2 text-left text-xs font-medium text-slate-400 uppercase tracking-wide">
+                <th className="py-2.5 pl-4 pr-2 text-left text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide">
                   <button
                     type="button"
                     onClick={() => toggleSort("name")}
@@ -977,7 +955,7 @@ export default function ZeitverteilungTab({
                     </span>
                   </button>
                 </th>
-                <th className="py-2.5 px-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wide">
+                <th className="py-2.5 px-3 text-right text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide">
                   <button
                     type="button"
                     onClick={() => toggleSort("time")}
@@ -989,7 +967,7 @@ export default function ZeitverteilungTab({
                     </span>
                   </button>
                 </th>
-                <th className="py-2.5 px-3 text-right text-xs font-medium text-slate-400 uppercase tracking-wide">
+                <th className="py-2.5 px-3 text-right text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide">
                   <button
                     type="button"
                     onClick={() => toggleSort("percent")}
@@ -1015,7 +993,7 @@ export default function ZeitverteilungTab({
                         return (
                           <th
                             key={col}
-                            className="py-2.5 px-2 text-right text-xs font-medium text-slate-400 uppercase tracking-wide whitespace-nowrap"
+                            className="py-2.5 px-2 text-right text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wide whitespace-nowrap"
                             title={col === "satisfaction" ? t("table.satisfactionColumnTitle") : undefined}
                           >
                             <button
@@ -1060,12 +1038,12 @@ export default function ZeitverteilungTab({
                             cat.isExpanded ? (
                               <ChevronDown
                                 size={15}
-                                className="flex-shrink-0 text-slate-400"
+                                className="flex-shrink-0 text-slate-400 dark:text-slate-500"
                               />
                             ) : (
                               <ChevronRight
                                 size={15}
-                                className="flex-shrink-0 text-slate-400"
+                                className="flex-shrink-0 text-slate-400 dark:text-slate-500"
                               />
                             )
                           ) : (
@@ -1133,7 +1111,6 @@ export default function ZeitverteilungTab({
                         <SubcategoryAccordion
                           key={sub.subcategoryId}
                           sub={sub}
-                          totalMinutes={grandTotalMinutes}
                           color={getCategoryColorById(cat.categoryId)}
                           showActivityMeta={showActivityMeta}
                           viewMode={viewMode}

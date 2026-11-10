@@ -182,6 +182,9 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
     boolean | null
   >(null);
   const [accessCheckReady, setAccessCheckReady] = useState(false);
+  // true when loading the access state failed (e.g. database briefly unreachable); shows a retry
+  // instead of leaving the user on the loading screen forever
+  const [accessCheckFailed, setAccessCheckFailed] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [profileMenuOpen, setProfileMenuOpen] = useState(false);
   const [securityQuestionsModalOpen, setSecurityQuestionsModalOpen] =
@@ -222,7 +225,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
         return;
       }
       initializedUserId = authUser.id;
-      void initializeUserAccess(authUser);
+      void runAccessStep(() => initializeUserAccess(authUser));
     }
 
     auth.getUser().then(({ data }) => {
@@ -319,8 +322,18 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
 
   // --- Access check and onboarding gates ---
 
+  // Runs one step of the access check; a failed Server Action switches to the retry screen
+  async function runAccessStep(step: () => Promise<void>) {
+    try {
+      await step();
+    } catch {
+      setAccessCheckFailed(true);
+    }
+  }
+
   // Loads role and onboarding state and decides which gate (if any) to show
   async function initializeUserAccess(authUser: AuthUser) {
+    setAccessCheckFailed(false);
     setUser(authUser);
     setAccessCheckReady(false);
     setNeedsPasswordChange(null);
@@ -366,7 +379,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
       setSecurityQuestionsModalOpen(false);
       setProfileModalMandatory(false);
       setProfileModalOpen(false);
-      await checkEnrollment(authUser.id);
+      await checkEnrollment();
       setAccessCheckReady(true);
       return;
     }
@@ -375,7 +388,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
     // sign in via SWITCH and have no password to recover, so skip them
     const isEduIdUser = authStateData?.auth_provider === "switch_edu_id";
     const hasSecurityQuestions =
-      isEduIdUser || (await checkSecurityQuestions(authUser.id));
+      isEduIdUser || (await checkSecurityQuestions());
     setNeedsSecurityQuestions(!hasSecurityQuestions);
 
     if (!hasSecurityQuestions) {
@@ -395,7 +408,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
     setSecurityQuestionsMandatory(false);
     setSecurityQuestionsModalOpen(false);
 
-    const hasProfileDetails = await checkProfileDetails(authUser.id);
+    const hasProfileDetails = await checkProfileDetails();
     setNeedsProfileDetails(!hasProfileDetails);
 
     if (!hasProfileDetails) {
@@ -409,23 +422,22 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
 
     setProfileModalMandatory(false);
     setProfileModalOpen(false);
-    await checkEnrollment(authUser.id);
+    await checkEnrollment();
     setAccessCheckReady(true);
   }
 
-  // The userId parameters are unused: the Server Actions always use the
-  // logged-in user from the session.
-  async function checkProfileDetails(_userId: string) {
+  // The Server Actions always use the logged-in user from the session.
+  async function checkProfileDetails() {
     return fetchHasProfileDetails();
   }
 
   // Both security questions must be answered; a load error (null) counts as missing
-  async function checkSecurityQuestions(_userId: string) {
+  async function checkSecurityQuestions() {
     const count = await countSecurityQuestions();
     return count === 2;
   }
 
-  async function checkEnrollment(_userId: string) {
+  async function checkEnrollment() {
     const data = await loadEnrollment();
 
     setIsEnrolled(!!data);
@@ -436,7 +448,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
 
   function handleEnrolled() {
     if (user) {
-      void checkEnrollment(user.id);
+      void runAccessStep(() => checkEnrollment());
       return;
     }
     setIsEnrolled(true);
@@ -446,7 +458,10 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
     if (!user) {
       return;
     }
+    await runAccessStep(continueAfterProfileSaved);
+  }
 
+  async function continueAfterProfileSaved() {
     const profileData = await loadProfileBasics();
 
     setProfileFirstName(profileData?.first_name ?? "");
@@ -456,7 +471,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
     setProfileModalMandatory(false);
     setNeedsProfileDetails(false);
     setAccessCheckReady(false);
-    await checkEnrollment(user.id);
+    await checkEnrollment();
     setAccessCheckReady(true);
   }
 
@@ -468,20 +483,23 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
     // Re-derive everything from scratch now that must_change_password is
     // false — simpler and just as correct as manually continuing the chain,
     // since role/profile/enrollment state all still need a fresh read anyway.
-    await initializeUserAccess(user);
+    await runAccessStep(() => initializeUserAccess(user));
   }
 
   async function handleSecurityQuestionsSaved() {
     if (!user) {
       return;
     }
+    await runAccessStep(continueAfterSecurityQuestionsSaved);
+  }
 
+  async function continueAfterSecurityQuestionsSaved() {
     setSecurityQuestionsModalOpen(false);
     setSecurityQuestionsMandatory(false);
     setNeedsSecurityQuestions(false);
     setAccessCheckReady(false);
 
-    const hasProfileDetails = await checkProfileDetails(user.id);
+    const hasProfileDetails = await checkProfileDetails();
     setNeedsProfileDetails(!hasProfileDetails);
 
     if (!hasProfileDetails) {
@@ -494,7 +512,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
 
     setProfileModalMandatory(false);
     setProfileModalOpen(false);
-    await checkEnrollment(user.id);
+    await checkEnrollment();
     setAccessCheckReady(true);
   }
 
@@ -626,6 +644,25 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
   ]);
 
   // --- Render ---
+
+  if (accessCheckFailed) {
+    return (
+      <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100">
+        <div className="mx-auto max-w-7xl px-4 py-16 text-center">
+          <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
+            {t("loadingSessionFailed")}
+          </p>
+          <button
+            type="button"
+            onClick={() => window.location.reload()}
+            className="mt-4 rounded-lg bg-slate-800 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700 dark:bg-slate-200 dark:text-slate-900 dark:hover:bg-white"
+          >
+            {t("retry")}
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Loading screen until the access check has decided which gate (if any) applies
   if (
@@ -1186,7 +1223,7 @@ export default function ProtectedLayout({ children }: { children: ReactNode }) {
       )}
 
       {showEnrollmentGate && (
-        <EnrollmentModal userId={user.id} onEnrolled={handleEnrolled} />
+        <EnrollmentModal onEnrolled={handleEnrolled} />
       )}
     </div>
   );

@@ -1,10 +1,9 @@
-// Helpers for route handlers (app/api/**): CSRF check, current user, rate limits, JSON errors.
+// Helpers for route handlers (app/api/**): CSRF check, rate limits, client address.
 // With cookie sessions the browser sends the cookie automatically, so every state-changing route must
 // verify that the request comes from our own pages (Server Actions get this check from Next.js itself).
 import { NextResponse } from "next/server";
 import { withService } from "@/lib/db";
 import { attemptKey } from "./core";
-import { getSessionUser, type SessionUser } from "./session";
 
 function expectedHosts(request: Request): string[] {
   const hosts = new Set<string>();
@@ -31,13 +30,6 @@ export function rejectCrossSite(request: Request): NextResponse | null {
     return null;
   }
   return NextResponse.json({ error: "forbidden" }, { status: 403 });
-}
-
-/** The logged-in user, or a 401 response. */
-export async function requireApiUser(): Promise<{ user: SessionUser } | { response: NextResponse }> {
-  const user = await getSessionUser();
-  if (!user) return { response: NextResponse.json({ error: "unauthorized" }, { status: 401 }) };
-  return { user };
 }
 
 /**

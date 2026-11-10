@@ -1,13 +1,17 @@
 -- T07 security question answers: own CRUD; reset tables only for the server.
 
--- INHERITED BEHAVIOUR (kept; a candidate for tightening): admins can read all answer hashes
+-- admins see and change only their own answers, never other people's answer hashes (migration 0005)
 SELECT set_config('role', 'tut_authenticated', true),
        set_config('app.user_id', '5eed0000-0000-4000-8000-000000000101', true);   -- a1
 DO $$
+DECLARE n int;
 BEGIN
-  IF (SELECT count(*) FROM public.user_security_question) <> 20 THEN
-    RAISE EXCEPTION 'T07a: old behaviour changed (admin reads all 20 answer hashes), got %', (SELECT count(*) FROM public.user_security_question);
+  IF (SELECT count(*) FROM public.user_security_question WHERE profiles_id <> auth.uid()) <> 0 THEN
+    RAISE EXCEPTION 'T07a: admin reads answer hashes of others';
   END IF;
+  UPDATE public.user_security_question SET answer_hash = 'x' WHERE profiles_id <> auth.uid();
+  GET DIAGNOSTICS n = ROW_COUNT;
+  IF n <> 0 THEN RAISE EXCEPTION 'T07a2: admin changed answers of others'; END IF;
 END
 $$;
 

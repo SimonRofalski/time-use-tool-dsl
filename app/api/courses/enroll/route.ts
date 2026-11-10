@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { course, courseAccessCode, orm, userCourse, withService } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth/session";
 import { rejectCrossSite } from "@/lib/auth/request";
@@ -49,11 +49,15 @@ export async function POST(request: NextRequest) {
         .where(eq(courseAccessCode.courseId, courseId));
       if (!codeRow || codeRow.accessCode.trim() !== accessCode) return "invalid_code" as const;
 
-      // Already enrolled in this course (e.g. double click / second tab) → success
-      const [existing] = await q
-        .select({ id: userCourse.userCourseId })
+      // Already enrolled in this course (e.g. double click / second tab) → success.
+      // Enrolled in another course → refused: the app expects exactly one enrollment per person
+      // (the layout shows the enrollment gate again otherwise).
+      const enrollments = await q
+        .select({ courseId: userCourse.courseId })
         .from(userCourse)
-        .where(and(eq(userCourse.profilesId, user.id), eq(userCourse.courseId, courseId)));
+        .where(eq(userCourse.profilesId, user.id));
+      if (enrollments.some((e) => e.courseId !== courseId)) return "enroll_failed" as const;
+      const existing = enrollments.length > 0;
       if (!existing) {
         // Savepoint: a failed insert must not abort the surrounding transaction
         try {

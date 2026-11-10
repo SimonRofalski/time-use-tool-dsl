@@ -30,6 +30,7 @@ import {
   getPeriodDates,
   getSinglePeriodDates,
   totalPeriodDays,
+  courseDurationDays,
   periodsDurationLabel,
   formatPeriodLabel,
   validatePeriodsNoOverlap,
@@ -129,6 +130,7 @@ function formatDate(dateString: string, locale: Locale): string {
   return new Date(dateString).toLocaleDateString(
     locale === "en" ? "en-US" : "de-DE",
     {
+      timeZone: "UTC", // "YYYY-MM-DD" parses as UTC midnight; formatting in UTC keeps the day
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -136,16 +138,7 @@ function formatDate(dateString: string, locale: Locale): string {
   );
 }
 
-/** Inclusive number of days between two ISO dates (for courses without period rows). */
-function courseDurationDays(startDate: string, endDate: string): number {
-  return (
-    Math.round(
-      (new Date(endDate).getTime() - new Date(startDate).getTime()) /
-        86_400_000,
-    ) + 1
-  );
-}
-
+/** Duration label such as "14 Tage" / "14 days" (for courses without period rows). */
 function courseDurationLabel(
   startDate: string,
   endDate: string,
@@ -260,13 +253,8 @@ export default function KursuebersichtTab() {
     setCourses(
       courseData.map(({ course_access_code, ...c }) => ({
         ...c,
-        // The server embeds the access code as an object (or null);
-        // the array branch is a defensive fallback
-        accessCode:
-          (Array.isArray(course_access_code)
-            ? course_access_code[0]?.access_code
-            : (course_access_code as { access_code?: string } | null)
-                ?.access_code) ?? null,
+        // The server embeds the access code as an object (or null)
+        accessCode: course_access_code?.access_code ?? null,
         userCount: countByCourse[c.course_id] ?? 0,
         periods: periodsByCourse[c.course_id] ?? [],
       })),
@@ -659,7 +647,9 @@ export default function KursuebersichtTab() {
       setCreateError(
         createFailed.step === "course"
           ? t("errors.courseCreateError", { message: createFailed.message })
-          : t("errors.periodsSaveError", { message: createFailed.message }),
+          : createFailed.step === "access_code"
+            ? t("errors.accessCodeSaveError", { message: createFailed.message })
+            : t("errors.periodsSaveError", { message: createFailed.message }),
       );
       setIsCreating(false);
       return;

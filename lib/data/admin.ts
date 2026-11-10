@@ -219,8 +219,8 @@ export type NewCourseInput = {
 };
 
 /** course + periods + access code in ONE transaction; a new course starts unlocked, comparison off */
-export async function createCourse(adminId: string, input: NewCourseInput): Promise<{ error: null | { step: "course" | "periods"; message: string } }> {
-  let step: "course" | "periods" = "course";
+export async function createCourse(adminId: string, input: NewCourseInput): Promise<{ error: null | { step: "course" | "periods" | "access_code"; message: string } }> {
+  let step: "course" | "periods" | "access_code" = "course";
   try {
     await withUser(adminId, async (db) => {
       const [course] = await db.query<{ course_id: number }>(
@@ -236,6 +236,7 @@ export async function createCourse(adminId: string, input: NewCourseInput): Prom
           [course.course_id, p.start_date, p.end_date, i],
         );
       }
+      step = "access_code";
       await db.query("INSERT INTO public.course_access_code (course_id, access_code) VALUES ($1, $2)", [
         course.course_id, input.access_code,
       ]);

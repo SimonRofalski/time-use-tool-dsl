@@ -27,9 +27,11 @@ FROM ${NODE_IMAGE} AS runner
 WORKDIR /app
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
+    TZ=Europe/Zurich \
     PORT=3000 \
     HOSTNAME=0.0.0.0 \
     KEEP_ALIVE_TIMEOUT=100000
+# TZ: server-side "today" / "N days ago" (admin statistics) must be Swiss days, not UTC days.
 # KEEP_ALIVE_TIMEOUT (100 s): longer than reverse-proxy upstream idle timeouts (nginx 60 s, Traefik
 # 90 s). The Node default of 5 s lets the proxy reuse connections the server has already closed,
 # which causes sporadic 502 errors.

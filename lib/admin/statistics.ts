@@ -23,6 +23,7 @@ function formatDateShort(isoDate: string, locale: Locale): string {
   return new Date(isoDate).toLocaleDateString(
     locale === "en" ? "en-US" : "de-DE",
     {
+      timeZone: "UTC", // "YYYY-MM-DD" parses as UTC midnight; formatting in UTC keeps the day
       weekday: "short",
       day: "numeric",
       month: "numeric",
@@ -30,10 +31,11 @@ function formatDateShort(isoDate: string, locale: Locale): string {
   );
 }
 
-// ISO date string for N days ago (midnight UTC)
+// Timestamp of local midnight N days ago. Local = the server's time zone (TZ=Europe/Zurich in the
+// image), the same one toDateKey/lastNDates use, so "last 7 days" and the trend chart agree.
 function daysAgoISO(n: number): string {
   const d = new Date();
-  d.setUTCHours(0, 0, 0, 0);
+  d.setHours(0, 0, 0, 0);
   d.setDate(d.getDate() - n);
   return d.toISOString();
 }

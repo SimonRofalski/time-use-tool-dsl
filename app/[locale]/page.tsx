@@ -538,13 +538,13 @@ export default function Home() {
 
           {mode === "forgot-password" && resetToken && (
             <form onSubmit={handleCompletePasswordReset} className="space-y-4">
-              <label className="block text-sm font-medium text-slate-700">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200">
                 {t("emailLabel")}
                 <input
                   type="email"
                   value={email}
                   readOnly
-                  className="mt-1.5 w-full rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-500"
+                  className="mt-1.5 w-full rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 px-3 py-2 text-sm text-slate-500 dark:text-slate-400"
                 />
               </label>
 

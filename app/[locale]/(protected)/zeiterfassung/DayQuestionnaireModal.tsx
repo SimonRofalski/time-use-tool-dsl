@@ -254,7 +254,7 @@ export default function DayQuestionnaireModal({
     });
 
     if (error) {
-      setSaveError(t("saveError", { message: error }));
+      setSaveError(t("saveError"));
       setSaving(false);
       return;
     }

@@ -17,7 +17,8 @@ BEGIN
   IF x IS NOT NULL THEN RAISE EXCEPTION 'T00c: unexpected roles in policies: %', x; END IF;
 
   SELECT count(*) INTO n FROM pg_policies WHERE schemaname = 'public' AND policyname <> 'backend_all';
-  IF n <> 95 THEN RAISE EXCEPTION 'T00d: expected the 95 policies of the old database, found %', n; END IF;
+  -- 95 policies of the old database minus the 4 legacy read rules removed in migration 0005
+  IF n <> 91 THEN RAISE EXCEPTION 'T00d: expected 91 policies, found %', n; END IF;
 
   IF has_table_privilege('tut_authenticated', 'public.app_user', 'SELECT')
      OR has_table_privilege('tut_authenticated', 'public.user_session', 'SELECT') THEN

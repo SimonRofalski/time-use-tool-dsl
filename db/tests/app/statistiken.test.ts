@@ -7,7 +7,7 @@
 import assert from "node:assert/strict";
 import { loadCourseComparison, loadStatistikenBase } from "../../../lib/data/statistiken";
 import { withService } from "../../../lib/db";
-import type { DayFilterMode } from "../../../lib/statistiken/comparison";
+import { buildComparisonIds, type DayFilterMode } from "../../../lib/statistiken/comparison";
 import { referencePool } from "./statistiken-reference";
 
 const id = (n: number) => `5eed0000-0000-4000-8000-000000000${n}`;
@@ -19,6 +19,16 @@ async function q<T extends Record<string, unknown>>(sql: string, params: unknown
 
 async function main() {
   assert.equal((await q("SELECT 1 FROM public.app_user WHERE id = $1", [P1])).length, 1, "seed database expected");
+
+  // sleep / sport / smartphone are defined by lookup codes; they must resolve to the same ids the
+  // comparison used when they were fixed in the code
+  const ids = buildComparisonIds(
+    await q<{ activity_id: number; code: string }>("SELECT activity_id, code FROM public.activity"),
+    await q<{ digital_media_type_id: number; code: string }>("SELECT digital_media_type_id, code FROM public.digital_media_type"),
+  );
+  assert.deepEqual([...ids.sleepActivityIds].sort((a, b) => a - b), [1, 2]);
+  assert.deepEqual([...ids.sportActivityIds].sort((a, b) => a - b), [77, 78, 79, 80, 81, 82, 83, 85]);
+  assert.equal(ids.smartphoneMediaTypeId, 2);
 
   // own data for the Zeitverteilung: all own days, entries of the submitted ones only
   const base = await loadStatistikenBase(P1);

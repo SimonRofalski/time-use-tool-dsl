@@ -2,14 +2,37 @@
 // (course comparison pool, lib/data/statistiken.ts), so both sides compute with exactly the same
 // code. No React, no database.
 
-// Activity IDs that count as "Schlaf" (subcategory 1: sleep + sick in bed)
-export const SLEEP_ACTIVITY_IDS = new Set([1, 2]);
+// The comparison's "Schlaf", "Sport" and "Smartphone" values are defined by the language-neutral
+// HETUS/BFS codes, never by database ids (ids may differ between databases):
+// - Schlaf: activity codes 01x (sleeping, sick in bed)
+// - Sport: activity codes 61x (physical exercise) and 63x (sports-related activities)
+// - Smartphone: digital_media_type code "1"
+const SLEEP_ACTIVITY_CODE_PREFIXES = ["01"];
+const SPORT_ACTIVITY_CODE_PREFIXES = ["61", "63"];
+const SMARTPHONE_MEDIA_TYPE_CODE = "1";
 
-// Activity IDs that count as "Sport" (subcategories 24 and 26)
-export const SPORT_ACTIVITY_IDS = new Set([77, 78, 79, 80, 81, 82, 83, 85]);
+/** Database ids of the comparison's special groups, resolved from the lookup tables' codes. */
+export type ComparisonIds = {
+  sleepActivityIds: number[];
+  sportActivityIds: number[];
+  smartphoneMediaTypeId: number | null;
+};
 
-// digital_media_type_id for smartphone usage
-export const SMARTPHONE_MEDIA_TYPE_ID = 2;
+export function buildComparisonIds(
+  activities: { activity_id: number; code: string }[],
+  mediaTypes: { digital_media_type_id: number; code: string }[],
+): ComparisonIds {
+  const idsWithPrefix = (prefixes: string[]) =>
+    activities
+      .filter((a) => prefixes.some((p) => a.code.startsWith(p)))
+      .map((a) => a.activity_id);
+  return {
+    sleepActivityIds: idsWithPrefix(SLEEP_ACTIVITY_CODE_PREFIXES),
+    sportActivityIds: idsWithPrefix(SPORT_ACTIVITY_CODE_PREFIXES),
+    smartphoneMediaTypeId:
+      mediaTypes.find((m) => m.code === SMARTPHONE_MEDIA_TYPE_CODE)?.digital_media_type_id ?? null,
+  };
+}
 
 // Minimum submitted days a user must have to be included in the course comparison
 export const MIN_DAYS_FOR_COMPARISON = 2;
@@ -146,10 +169,11 @@ export function calcAverageHoursPerDay(
   return totalMinutes / 60 / totalDays;
 }
 
-// Calculates average hours per day the user used smartphone (digital_media_type_id = 2)
+// Calculates average hours per day the user used a smartphone
 export function calcSmartphoneHoursPerDay(
   entries: RawEntry[],
   submittedDayIds: Set<number>,
+  smartphoneMediaTypeId: number | null,
 ): number {
   const totalDays = submittedDayIds.size;
   if (totalDays === 0) return 0;
@@ -157,7 +181,10 @@ export function calcSmartphoneHoursPerDay(
   let totalMinutes = 0;
   for (const entry of entries) {
     if (!submittedDayIds.has(entry.day_id)) continue;
-    if (!entry.digital_media_type_ids.includes(SMARTPHONE_MEDIA_TYPE_ID)) {
+    if (
+      smartphoneMediaTypeId == null ||
+      !entry.digital_media_type_ids.includes(smartphoneMediaTypeId)
+    ) {
       continue;
     }
     totalMinutes += calculateMinutes(entry.start_time, entry.end_time);
@@ -322,6 +349,7 @@ export function computeCoursePool(input: {
   socialContextCodeById: Record<number, string>;
   locationCodeById: Record<number, string>;
   satisfactionRankById: Record<number, number>;
+  comparisonIds: ComparisonIds;
   weeksFilter: string[];
   dayMode: DayFilterMode;
 }): CoursePool {
@@ -361,14 +389,18 @@ export function computeCoursePool(input: {
   };
   const share = (part: number, total: number) =>
     total > 0 ? (part / total) * 100 : 0;
+  const sleepIds = new Set(input.comparisonIds.sleepActivityIds);
+  const sportIds = new Set(input.comparisonIds.sportActivityIds);
 
   for (const [, dayIds] of filteredUsers) {
     const dayIdSet = new Set(dayIds);
     const userEntries = input.entries.filter((e) => dayIdSet.has(e.day_id));
 
-    sleep.push(calcAverageHoursPerDay(userEntries, dayIdSet, SLEEP_ACTIVITY_IDS));
-    sport.push(calcAverageHoursPerDay(userEntries, dayIdSet, SPORT_ACTIVITY_IDS));
-    smartphone.push(calcSmartphoneHoursPerDay(userEntries, dayIdSet));
+    sleep.push(calcAverageHoursPerDay(userEntries, dayIdSet, sleepIds));
+    sport.push(calcAverageHoursPerDay(userEntries, dayIdSet, sportIds));
+    smartphone.push(
+      calcSmartphoneHoursPerDay(userEntries, dayIdSet, input.comparisonIds.smartphoneMediaTypeId),
+    );
 
     const perCategory = hoursPerDayByCategory(userEntries, dayIdSet, input.activityToCategory);
     for (const catId of input.categoryIds) {

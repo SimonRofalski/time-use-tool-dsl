@@ -49,11 +49,7 @@ Die Datenbank setzt die Rechte durch, nicht nur die App:
   Code, der diese Spalten ändert, läuft deshalb über `withService`.
 - **Kursvergleich.** Er wird auf dem Server berechnet (`lib/data/statistiken.ts`,
   `lib/statistiken/comparison.ts`). Im Browser kommen nur Kennzahlen an, nie Einträge anderer Personen.
-  - In der Datenbank gibt es noch zwei Leseregeln aus der Vorgängerversion: Teilnehmende dürfen die
-    abgegebenen Tage und Einträge ihres Kurses lesen. Früher brauchte der Kursvergleich das im
-    Browser. Heute liest der Kursvergleich über `withService`. Bevor man die Regeln mit einer
-    Migration entfernt, prüfen, dass kein anderer Code sie braucht, und den Test `db/tests/03_*`
-    anpassen.
+  Teilnehmende können die Tage und Einträge anderer Personen auch direkt in der Datenbank nicht lesen.
 - **Forschungsdaten.** Admins sehen keine einzelnen Zeiteinträge der Teilnehmenden. Exporte sind
   aggregiert oder anonymisiert (`lib/admin/`).
 
@@ -98,8 +94,8 @@ Die Datenbank setzt die Rechte durch, nicht nur die App:
 - **Design:** Zu jeder hellen Tailwind-Klasse gehört eine `dark:`-Variante.
 - **Datum "heute":** immer `getLocalIsoDate()` (`lib/local-date.ts`), nie `toISOString()`, weil
   sonst die Zeitzone den Tag verschiebt.
-- **E-Mails** werden mit `lower(email) = $1` verglichen. Braucht es einmal `ILIKE` mit einer
-  Benutzereingabe, dann mit `escapeLikePattern` (`lib/escape-like.ts`).
+- **E-Mails** werden mit `lower(email) = $1` verglichen, nie mit `ILIKE`: In einer Benutzereingabe
+  wären `%` und `_` Platzhalter und könnten fremde Konten treffen.
 - **Kommentare** auf Englisch, kurz, mit dem Warum. Personennamen nur im README.
 
 ## Datenbank ändern

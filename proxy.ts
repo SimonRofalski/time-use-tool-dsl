@@ -63,8 +63,10 @@ export async function proxy(request: NextRequest) {
 
   const response = intlMiddleware(request);
 
-  const isProtectedPath = PROTECTED_PATHS.some((path) =>
-    request.nextUrl.pathname.startsWith(path),
+  // whole path segments only: "/admin" and "/admin/x" match, "/administration" does not
+  const { pathname } = request.nextUrl;
+  const isProtectedPath = PROTECTED_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(path + "/"),
   );
   if (!loggedIn && isProtectedPath) {
     return NextResponse.redirect(new URL("/", request.url));

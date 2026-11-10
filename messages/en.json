@@ -67,6 +67,8 @@
   },
   "protectedLayout": {
     "loadingSession": "Preparing session...",
+    "loadingSessionFailed": "Your session could not be loaded. Please try again.",
+    "retry": "Try again",
     "tabs": {
       "zeiterfassung": "ENTRY",
       "erfassteZeit": "OVERVIEW",
@@ -489,7 +491,8 @@
       "periodDatesRequired": "Please provide a start and end date for every period.",
       "periodEndBeforeStart": "The end date must be after the start date.",
       "courseCreateError": "Course could not be created: {message}",
-      "periodsSaveError": "Periods could not be saved: {message}"
+      "periodsSaveError": "Periods could not be saved: {message}",
+      "accessCodeSaveError": "Access code could not be saved: {message}"
     },
     "newCourseForm": {
       "nameLabel": "Course name",
@@ -1044,7 +1047,7 @@
     "saveButton": "Save",
     "savingButton": "Saving…",
     "missingFieldsError": "Please answer all questions.",
-    "saveError": "Error while saving: {message}",
+    "saveError": "Could not save. Please try again.",
     "questions": {
       "fillTiming": "When did you fill in the diary?",
       "mostPleasant": "What was the most pleasant activity you logged today?",

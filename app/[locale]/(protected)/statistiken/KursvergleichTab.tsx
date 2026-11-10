@@ -27,13 +27,11 @@ import type {
 } from "./types";
 import { CATEGORY_COLORS } from "@/app/[locale]/(protected)/zeiterfassung/types";
 import { satisfactionLevelForAverage } from "./satisfaction";
+// Same threshold the server applies (lib/statistiken/comparison.ts)
+import { MIN_USERS_FOR_COMPARISON, type DayFilterMode } from "@/lib/statistiken/comparison";
 
 // --- Constants ---
 
-// Minimum number of qualifying users (>= 2 submitted days) before the comparison is shown;
-// the server applies the same threshold
-const MIN_USERS_FOR_COMPARISON = 3;
-type DayFilterMode = "alle" | "werktage" | "wochenende";
 
 const USER_BLUE = "#3B82F6"; // blue-500 — "du" in the focus and context cards
 
@@ -181,7 +179,7 @@ function BarPair({
   const line = (label: string, value: number, fill: string, strong: boolean) => (
     <div className="flex items-center gap-2">
       {showLabels && (
-        <span className="w-10 shrink-0 text-[10px] uppercase tracking-wide text-slate-400">
+        <span className="w-10 shrink-0 text-[10px] uppercase tracking-wide text-slate-400 dark:text-slate-500">
           {label}
         </span>
       )}
@@ -436,10 +434,10 @@ export default function KursvergleichTab({
       {/* Global filters (same structure as Zeitverteilung) */}
       <div className="flex flex-col gap-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:flex-wrap">
         <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 shrink-0">
+          <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 shrink-0">
             {tFilters("dayFilter.label")}
           </span>
-          <div className="inline-flex rounded-lg border border-slate-200 bg-slate-50 p-0.5">
+          <div className="inline-flex rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900 p-0.5">
             <button
               type="button"
               onClick={() => onSetDayFilter("alle")}
@@ -482,7 +480,7 @@ export default function KursvergleichTab({
 
         {weekOptions.length > 0 && (
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 shrink-0">
+            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400 shrink-0">
               {tFilters("weekFilter.label")}
             </span>
             <button
@@ -526,12 +524,12 @@ export default function KursvergleichTab({
 
       {/* Not enough users disclaimer */}
       {!hasEnoughUsers && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-6 text-center">
+        <div className="rounded-xl border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20 px-5 py-6 text-center">
           <p className="text-2xl mb-2">👥</p>
-          <p className="text-sm font-semibold text-amber-800">
+          <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
             {t("notEnoughUsers.title")}
           </p>
-          <p className="mt-1 text-xs text-amber-700">
+          <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
             {t("notEnoughUsers.description", {
               minUsers: MIN_USERS_FOR_COMPARISON,
             })}
@@ -579,12 +577,12 @@ export default function KursvergleichTab({
               <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
                 {t("categoryTitle")}
               </h3>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-[11px] text-slate-400 dark:text-slate-500">
                 {t("categorySubtitle")}
               </p>
             </div>
             {sortedCategories.length === 0 ? (
-              <p className="py-6 text-center text-sm text-slate-400">
+              <p className="py-6 text-center text-sm text-slate-400 dark:text-slate-500">
                 {t("noComparableData")}
               </p>
             ) : (

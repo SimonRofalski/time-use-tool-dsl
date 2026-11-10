@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from "react";
 import { KeyRound, Search, ShieldCheck, ShieldOff, Trash2, UserPlus } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { loadUserOverviewData, setUserAdmin, setUserCourseExcluded } from "@/app/components/admin/admin-actions";
-import { totalPeriodDays } from "@/lib/course-periods";
+import { courseDurationDays, totalPeriodDays } from "@/lib/course-periods";
 import ConfirmModal from "./ConfirmModal";
 import CreateUserModal from "./CreateUserModal";
 import SetPasswordModal from "./SetPasswordModal";
@@ -17,7 +17,8 @@ import SetPasswordModal from "./SetPasswordModal";
 
 type UserRow = {
   userId: string;
-  userCourseId: string | null;
+  // all enrollments of the user (normally at most one); exclusion applies to all of them
+  userCourseIds: string[];
   email: string;
   firstName: string | null;
   lastName: string | null;
@@ -45,15 +46,6 @@ type ConfirmModalState = {
 };
 
 // --- Helpers ---
-
-/** Inclusive number of days between two ISO dates (fallback when a course has no periods). */
-function courseDurationDays(start: string, end: string): number {
-  return (
-    Math.round(
-      (new Date(end).getTime() - new Date(start).getTime()) / 86_400_000,
-    ) + 1
-  );
-}
 
 function displayName(u: UserRow): string {
   if (u.firstName || u.lastName) {
@@ -147,57 +139,37 @@ export default function NutzeruebersichtTab() {
       {
         name: string;
         totalDays: number;
-        userCourseId: string;
+        userCourseIds: string[];
         isExcluded: boolean;
       }
     > = {};
     for (const uc of userCourses ?? []) {
-      // The server embeds the course as an object; the array branch is a defensive fallback
-      const courseRaw = uc.course as unknown;
-      let courseName: string | null = null;
-      let totalDays = 0;
-
-      const extractCourse = (c: {
-        name: string;
-        start_date: string;
-        end_date: string;
-        course_period?: { start_date: string; end_date: string }[] | null;
-      }) => {
-        courseName = c.name;
-        const coursePeriods = c.course_period ?? [];
-        totalDays =
-          coursePeriods.length > 0
-            ? totalPeriodDays(coursePeriods)
-            : courseDurationDays(c.start_date, c.end_date);
-      };
-
-      if (courseRaw && typeof courseRaw === "object" && "name" in courseRaw) {
-        extractCourse(
-          courseRaw as {
-            name: string;
-            start_date: string;
-            end_date: string;
-            course_period?: { start_date: string; end_date: string }[];
-          },
-        );
-      } else if (Array.isArray(courseRaw) && courseRaw.length > 0) {
-        extractCourse(
-          courseRaw[0] as {
-            name: string;
-            start_date: string;
-            end_date: string;
-            course_period?: { start_date: string; end_date: string }[];
-          },
-        );
-      }
+      // The server embeds the course as an object (or null when it no longer exists)
+      const c = uc.course;
+      const courseName = c?.name ?? null;
+      const totalDays = !c
+        ? 0
+        : c.course_period.length > 0
+          ? totalPeriodDays(c.course_period)
+          : courseDurationDays(c.start_date, c.end_date);
 
       if (uc.profiles_id && courseName) {
-        courseInfoByUser[uc.profiles_id] = {
-          name: courseName,
-          totalDays,
-          userCourseId: uc.user_course_id,
-          isExcluded: uc.is_excluded ?? false,
-        };
+        // Several enrollments are merged into one row (names joined, days added up) instead of
+        // the last one silently replacing the others
+        const prev = courseInfoByUser[uc.profiles_id];
+        courseInfoByUser[uc.profiles_id] = prev
+          ? {
+              name: `${prev.name}, ${courseName}`,
+              totalDays: prev.totalDays + totalDays,
+              userCourseIds: [...prev.userCourseIds, uc.user_course_id],
+              isExcluded: prev.isExcluded && (uc.is_excluded ?? false),
+            }
+          : {
+              name: courseName,
+              totalDays,
+              userCourseIds: [uc.user_course_id],
+              isExcluded: uc.is_excluded ?? false,
+            };
       }
     }
 
@@ -241,7 +213,7 @@ export default function NutzeruebersichtTab() {
         const info = courseInfoByUser[p.id];
         return {
           userId: p.id,
-          userCourseId: info?.userCourseId ?? null,
+          userCourseIds: info?.userCourseIds ?? [],
           email: p.email ?? p.id.slice(0, 8) + "…",
           firstName: p.first_name ?? null,
           lastName: p.last_name ?? null,
@@ -264,10 +236,13 @@ export default function NutzeruebersichtTab() {
 
   /** Excluded enrollments stay visible here but are left out of the course comparison and the exports. */
   async function handleToggleExclude(user: UserRow) {
-    if (!user.userCourseId) return;
+    if (user.userCourseIds.length === 0) return;
 
     const nowExcluded = !user.isExcluded;
-    const { error } = await setUserCourseExcluded(user.userCourseId, nowExcluded);
+    let error = false;
+    for (const id of user.userCourseIds) {
+      if ((await setUserCourseExcluded(id, nowExcluded)).error) error = true;
+    }
 
     if (!error) {
       setUsers((prev) =>
@@ -561,7 +536,7 @@ export default function NutzeruebersichtTab() {
                 </div>
 
                 <div className="mt-4 space-y-2 border-t border-slate-100 pt-3 dark:border-slate-800">
-                  {u.userCourseId && (
+                  {u.userCourseIds.length > 0 && (
                     <button
                       type="button"
                       onClick={() => openExcludeModal(u)}
@@ -708,7 +683,7 @@ export default function NutzeruebersichtTab() {
                     {/* Actions */}
                     <td className="px-4 py-3">
                       <div className="flex flex-wrap gap-2">
-                        {u.userCourseId && (
+                        {u.userCourseIds.length > 0 && (
                           <button
                             type="button"
                             onClick={() => openExcludeModal(u)}

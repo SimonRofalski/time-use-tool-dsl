@@ -55,6 +55,9 @@ export async function referencePool(viewer: string, courseId: number, weeks: str
         socialContextCodeById: Object.fromEntries(sc.map((s) => [s.social_context_id, s.code])),
         locationCodeById: Object.fromEntries(loc.map((l) => [l.location_transport_id, l.code])),
         satisfactionRankById: buildSatisfactionRanks(sat).satisfactionRankById,
+        // The fixed ids the comparison used before it switched to lookup codes; comparing against
+        // them also proves that the code-based ids select the same activities / device.
+        comparisonIds: { sleepActivityIds: [1, 2], sportActivityIds: [77, 78, 79, 80, 81, 82, 83, 85], smartphoneMediaTypeId: 2 },
         weeksFilter: weeks,
         dayMode: mode,
       }),

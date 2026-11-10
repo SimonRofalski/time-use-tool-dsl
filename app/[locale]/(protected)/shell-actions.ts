@@ -2,7 +2,7 @@
 // Server Actions of the protected layout (header, onboarding gates, tutorial, language).
 // Each returns the row shape layout.tsx expects (the former PostgREST shape, snake_case keys).
 // The user is always taken from the session, never from the caller; RLS applies via withUser.
-import { and, eq } from "drizzle-orm";
+import { eq } from "drizzle-orm";
 import { course, orm, profiles, userCourse, userData, userSecurityQuestion, withUser } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth/session";
 
@@ -107,6 +107,6 @@ export async function updateLocale(locale: "de" | "en") {
   const user = await getSessionUser();
   if (!user) return;
   await withUser(user.id, (db) =>
-    orm(db).update(profiles).set({ locale }).where(and(eq(profiles.id, user.id))),
+    orm(db).update(profiles).set({ locale }).where(eq(profiles.id, user.id)),
   );
 }

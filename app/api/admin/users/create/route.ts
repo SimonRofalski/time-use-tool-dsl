@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getTranslations } from "next-intl/server";
 import { requireAdmin } from "@/lib/admin/auth";
 import { pgErrorCode, withService } from "@/lib/db";
-import { hashPassword, normalizeEmail, passwordProblem } from "@/lib/auth/core";
+import { hashPassword, normalizeEmail, PASSWORD_MIN_LENGTH, passwordProblem } from "@/lib/auth/core";
 import { rejectCrossSite } from "@/lib/auth/request";
 import { getApiLocale } from "@/lib/i18n/api-locale";
 
@@ -41,7 +41,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: t("invalidEmail") }, { status: 400 });
   }
 
-  if (!body.temporaryPassword || body.temporaryPassword.length < 6) {
+  if (!body.temporaryPassword || body.temporaryPassword.length < PASSWORD_MIN_LENGTH) {
+    // same minimum as passwordProblem, but with the translated message
     return NextResponse.json({ error: t("passwordTooShort") }, { status: 400 });
   }
   const problem = passwordProblem(body.temporaryPassword);

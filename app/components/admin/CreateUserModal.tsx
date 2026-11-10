@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { generateTemporaryPassword } from "@/lib/temporary-password";
 
 // Nutzeruebersicht: an admin creates a password account (for people without SWITCH edu-ID) via
 // /api/admin/users/create. The temporary password is shown once; the user must change it at first login.
@@ -10,11 +11,6 @@ type CreateUserModalProps = {
   onClose: () => void;
   onCreated: () => void;
 };
-
-/** Suggestion for the temporary password field (10 base-36 characters); the user replaces it anyway. */
-function generateRandomPassword(): string {
-  return Math.random().toString(36).slice(-5) + Math.random().toString(36).slice(-5);
-}
 
 export default function CreateUserModal({ onClose, onCreated }: CreateUserModalProps) {
   const t = useTranslations("nutzeruebersicht.createUserModal");
@@ -160,7 +156,7 @@ export default function CreateUserModal({ onClose, onCreated }: CreateUserModalP
               />
               <button
                 type="button"
-                onClick={() => setTemporaryPassword(generateRandomPassword())}
+                onClick={() => setTemporaryPassword(generateTemporaryPassword())}
                 className="whitespace-nowrap rounded-md border border-slate-200 px-3 py-2 text-xs font-medium text-slate-600 transition hover:border-slate-300 hover:text-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:border-slate-600"
               >
                 {t("generateButton")}

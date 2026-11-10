@@ -122,6 +122,7 @@ export async function saveProfileForm(
     });
     return { error: null };
   } catch (error) {
-    return { error: error instanceof Error ? error.message : "unknown" };
+    console.error("saving the profile failed", error);
+    return { error: "save_failed" };
   }
 }

@@ -36,6 +36,11 @@ function generateDateRange(startDate: string, endDate: string): string[] {
   return dates;
 }
 
+/** Inclusive number of days between two ISO dates (fallback when a course has no periods). */
+export function courseDurationDays(start: string, end: string): number {
+  return Math.round((parseIsoDate(end).getTime() - parseIsoDate(start).getTime()) / 86_400_000) + 1;
+}
+
 // Returns all dates from all periods, deduplicated and sorted ascending.
 // Handles overlapping periods safely via a Set.
 export function getPeriodDates(
@@ -84,6 +89,7 @@ export function formatPeriodLabel(
   const days = generateDateRange(startDate, endDate).length;
   const fmt = (d: string) =>
     new Date(d).toLocaleDateString(locale === "en" ? "en-US" : "de-DE", {
+      timeZone: "UTC", // "YYYY-MM-DD" parses as UTC midnight; formatting in UTC keeps the day
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
@@ -104,6 +110,7 @@ export function validatePeriodsNoOverlap(
   );
   const fmt = (d: string) =>
     new Date(d).toLocaleDateString(locale === "en" ? "en-US" : "de-DE", {
+      timeZone: "UTC", // "YYYY-MM-DD" parses as UTC midnight; formatting in UTC keeps the day
       day: "2-digit",
       month: "2-digit",
       year: "numeric",

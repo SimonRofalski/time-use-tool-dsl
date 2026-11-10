@@ -26,9 +26,8 @@ import type {
 } from "./types";
 import { getLocalIsoDate } from "@/lib/local-date";
 import {
-  SLEEP_ACTIVITY_IDS,
-  SPORT_ACTIVITY_IDS,
   buildActivityToCategory,
+  buildComparisonIds,
   buildSatisfactionRanks,
   calcAverageHoursPerDay,
   calcSmartphoneHoursPerDay,
@@ -57,6 +56,7 @@ type ActivityLookup = {
   name: string;
   name_en: string;
   subcategory_id: number;
+  code: string;
 };
 type SubcategoryLookup = {
   subcategory_id: number;
@@ -792,19 +792,28 @@ export default function StatistikenPage() {
       ),
     );
 
+    // Same code-based definition of sleep / sport / smartphone as the server's course side
+    const comparisonIds = buildComparisonIds(
+      lookups?.activities ?? [],
+      Object.entries(lookups?.digitalMediaById ?? {}).map(([id, item]) => ({
+        digital_media_type_id: Number(id),
+        code: item.code,
+      })),
+    );
     const mySleepValue = calcAverageHoursPerDay(
       raw.myEntries,
       myFilteredSubmittedDayIds,
-      SLEEP_ACTIVITY_IDS,
+      new Set(comparisonIds.sleepActivityIds),
     );
     const mySportValue = calcAverageHoursPerDay(
       raw.myEntries,
       myFilteredSubmittedDayIds,
-      SPORT_ACTIVITY_IDS,
+      new Set(comparisonIds.sportActivityIds),
     );
     const mySmartphoneValue = calcSmartphoneHoursPerDay(
       raw.myEntries,
       myFilteredSubmittedDayIds,
+      comparisonIds.smartphoneMediaTypeId,
     );
 
     const codeOf = (byId: Record<number, NamedCode>) => {
@@ -1053,10 +1062,7 @@ export default function StatistikenPage() {
       buildSatisfactionRanks(satisfactionRows);
 
     const allMyDays = myDays ?? [];
-    const submittedDayIds = new Set(
-      allMyDays.filter((d) => d.is_submitted).map((d) => d.day_id),
-    );
-
+    // only submitted days count in the statistics
     const trackedDays = allMyDays.filter((d) => d.is_submitted);
     const trackedDayIds = new Set(trackedDays.map((d) => d.day_id));
 
@@ -1128,7 +1134,7 @@ export default function StatistikenPage() {
     // viewer's own values are computed here from the entries above.
     rawComparisonRef.current = {
       myEntries,
-      mySubmittedDayIds: submittedDayIds,
+      mySubmittedDayIds: trackedDayIds,
       myDayIdToDate,
       socialContextById,
       locationById,
@@ -1258,7 +1264,7 @@ export default function StatistikenPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-20">
-        <p className="text-slate-500">{t("loading")}</p>
+        <p className="text-slate-500 dark:text-slate-400">{t("loading")}</p>
       </div>
     );
   }
@@ -1266,7 +1272,7 @@ export default function StatistikenPage() {
   if (errorMessage) {
     return (
       <div className="rounded-lg border border-red-200 bg-red-50 p-4">
-        <p className="text-sm text-red-600">{errorMessage}</p>
+        <p className="text-sm text-red-600 dark:text-red-400">{errorMessage}</p>
       </div>
     );
   }
@@ -1337,11 +1343,11 @@ export default function StatistikenPage() {
           actions={exportButton}
         />
       ) : (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 px-5 py-6 text-center">
-          <p className="text-sm font-semibold text-amber-800">
+        <div className="rounded-xl border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-900/20 px-5 py-6 text-center">
+          <p className="text-sm font-semibold text-amber-800 dark:text-amber-300">
             {t("comparisonLocked.title")}
           </p>
-          <p className="mt-1 text-xs text-amber-700">
+          <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
             {t("comparisonLocked.description")}
           </p>
         </div>

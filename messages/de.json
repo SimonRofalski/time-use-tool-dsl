@@ -67,6 +67,8 @@
   },
   "protectedLayout": {
     "loadingSession": "Sitzung wird vorbereitet...",
+    "loadingSessionFailed": "Die Sitzung konnte nicht geladen werden. Bitte versuche es nochmals.",
+    "retry": "Erneut versuchen",
     "tabs": {
       "zeiterfassung": "EINGABE",
       "erfassteZeit": "ÜBERSICHT",
@@ -489,7 +491,8 @@
       "periodDatesRequired": "Bitte für jeden Zeitraum Start- und Enddatum angeben.",
       "periodEndBeforeStart": "Das Enddatum muss nach dem Startdatum liegen.",
       "courseCreateError": "Kurs konnte nicht erstellt werden: {message}",
-      "periodsSaveError": "Zeiträume konnten nicht gespeichert werden: {message}"
+      "periodsSaveError": "Zeiträume konnten nicht gespeichert werden: {message}",
+      "accessCodeSaveError": "Zugangscode konnte nicht gespeichert werden: {message}"
     },
     "newCourseForm": {
       "nameLabel": "Kursname",
@@ -1044,7 +1047,7 @@
     "saveButton": "Speichern",
     "savingButton": "Wird gespeichert…",
     "missingFieldsError": "Bitte beantworte alle Fragen.",
-    "saveError": "Fehler beim Speichern: {message}",
+    "saveError": "Fehler beim Speichern. Bitte versuche es nochmals.",
     "questions": {
       "fillTiming": "Wann hast du das Tagebuch ausgefüllt?",
       "mostPleasant": "Was war die angenehmste Aktivität, die du heute erfasst hast?",
