@@ -1,0 +1,193 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --background: #f8fafc;
+  --foreground: #1e293b;
+}
+
+html.dark {
+  --background: #020617;
+  --foreground: #e2e8f0;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: Arial, Helvetica, sans-serif;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+/* Hide scrollbar for tab navigation */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Slim, styled scrollbar */
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+.scrollbar-thin::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 999px;
+}
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: #94a3b8;
+}
+html.dark .scrollbar-thin {
+  scrollbar-color: #334155 transparent;
+}
+html.dark .scrollbar-thin::-webkit-scrollbar-thumb {
+  background-color: #334155;
+}
+html.dark .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background-color: #475569;
+}
+
+/* Zeiterfassung: pending-entry triangles slide into the selected slots from
+   their own corner (primary = bottom-left, secondary = top-right) */
+@keyframes slot-tri-in-tr {
+  from {
+    transform: translate(70%, -70%);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+@keyframes slot-tri-in-bl {
+  from {
+    transform: translate(-70%, 70%);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+.slot-tri-in-tr {
+  animation: slot-tri-in-tr 380ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.slot-tri-in-bl {
+  animation: slot-tri-in-bl 380ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+/* Subtle entrance so a new questionnaire step reads as a new screen */
+@keyframes step-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.step-in {
+  animation: step-in 220ms ease-out both;
+}
+
+/* Tutorial tour: the arrow draws itself in, then gently nudges toward its
+   target; each step's card eases in */
+@keyframes tour-arrow-draw {
+  from {
+    stroke-dashoffset: 1;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes tour-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes tour-arrow-nudge {
+  0%,
+  100% {
+    transform: translate(0, 0);
+  }
+  50% {
+    transform: translate(var(--tour-nudge-x), var(--tour-nudge-y));
+  }
+}
+@keyframes tour-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.tour-arrow-path {
+  stroke-dasharray: 1;
+  animation: tour-arrow-draw 450ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.tour-arrow-head {
+  animation: tour-fade-in 150ms 380ms ease-out both;
+}
+.tour-arrow-nudge {
+  animation: tour-arrow-nudge 1.6s 600ms ease-in-out infinite;
+}
+.tour-card-in {
+  animation: tour-card-in 220ms ease-out both;
+}
+/* "Tap" on the spotlit target before the tour moves on (simulated click) */
+@keyframes tour-tap {
+  0% {
+    transform: scale(1);
+    background-color: rgb(59 130 246 / 0);
+  }
+  40% {
+    transform: scale(0.97);
+    background-color: rgb(59 130 246 / 0.28);
+  }
+  100% {
+    transform: scale(1);
+    background-color: rgb(59 130 246 / 0.18);
+  }
+}
+.tour-tap {
+  animation: tour-tap 450ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .slot-tri-in-tr,
+  .slot-tri-in-bl,
+  .step-in,
+  .tour-arrow-path,
+  .tour-arrow-head,
+  .tour-arrow-nudge,
+  .tour-card-in,
+  .tour-tap {
+    animation: none;
+  }
+}

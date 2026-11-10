@@ -1,0 +1,1122 @@
+{
+  "settingsPage": {
+    "title": "Einstellungen",
+    "description": "Die Einstellungen wurden in das Panel oben rechts verschoben. Dort kannst du den Night Modus umstellen und deine Kontoinformationen einsehen."
+  },
+  "adminPage": {
+    "title": "Admin"
+  },
+  "login": {
+    "brand": "Time Use Tool",
+    "modes": {
+      "signin": {
+        "title": "Anmeldung",
+        "submitLabel": "Jetzt anmelden"
+      },
+      "signup": {
+        "title": "Registrieren",
+        "submitLabel": "Account erstellen"
+      },
+      "forgotPassword": {
+        "title": "Passwort zurücksetzen",
+        "submitLabel": "Sicherheitsfragen starten"
+      }
+    },
+    "emailLabel": "E-Mail",
+    "emailPlaceholder": "name@beispiel.de",
+    "passwordLabel": "Passwort",
+    "passwordPlaceholder": "Mindestens 6 Zeichen",
+    "loadSecurityQuestionsButton": "Sicherheitsfragen laden",
+    "checkAnswersButton": "Antworten prüfen",
+    "answerPlaceholder": "Antwort",
+    "newPasswordLabel": "Neues Passwort",
+    "confirmPasswordLabel": "Passwort bestätigen",
+    "confirmPasswordPlaceholder": "Passwort wiederholen",
+    "setNewPasswordButton": "Neues Passwort setzen",
+    "noAccountButton": "Noch kein Konto? Hier neuen Account erstellen",
+    "forgotPasswordButton": "Passwort vergessen?",
+    "backToSigninButton": "Zurück zur Anmeldung",
+    "switchEduIdDescription": "Für Studierende und Mitarbeitende mit SWITCH edu-ID – ein Konto wird bei der ersten Anmeldung automatisch erstellt.",
+    "switchEduIdButton": "Mit SWITCH edu-ID anmelden",
+    "orDivider": "oder",
+    "status": {
+      "emailRequired": "Bitte E-Mail-Adresse eingeben.",
+      "emailInvalid": "Bitte eine gültige E-Mail-Adresse eingeben.",
+      "securityQuestionsLoadError": "Sicherheitsfragen konnten nicht geladen werden.",
+      "accountCreated": "Account erstellt. Du kannst dich jetzt anmelden.",
+      "wrongCredentials": "Falsches Passwort oder E-Mail.",
+      "answerBothQuestions": "Bitte beantworte beide Sicherheitsfragen.",
+      "answersCheckError": "Die Antworten konnten nicht geprüft werden.",
+      "resetSessionExpired": "Der Reset-Vorgang ist nicht mehr gültig.",
+      "passwordMismatch": "Passwörter stimmen nicht überein.",
+      "passwordTooShort": "Passwort muss mindestens 6 Zeichen lang sein.",
+      "passwordSetError": "Das Passwort konnte nicht gesetzt werden.",
+      "passwordResetSuccess": "Passwort erfolgreich zurückgesetzt. Du kannst dich jetzt anmelden."
+    },
+    "oidcErrorGeneric": "Anmeldung mit SWITCH edu-ID fehlgeschlagen. Bitte versuche es erneut.",
+    "oidcErrors": {
+      "missingSession": "Die Anmeldung ist abgelaufen. Bitte versuche es erneut.",
+      "exchangeFailed": "Anmeldung mit SWITCH edu-ID fehlgeschlagen. Bitte versuche es erneut.",
+      "missingClaims": "SWITCH edu-ID hat keine ausreichenden Kontodaten geliefert.",
+      "incompleteIdentity": "SWITCH edu-ID hat keine E-Mail-Adresse geliefert. Bitte wende dich an einen Admin.",
+      "accountConflict": "Dieses Konto ist bereits mit einer anderen SWITCH edu-ID verknüpft. Bitte wende dich an einen Admin.",
+      "provisioningFailed": "Konto konnte nicht eingerichtet werden. Bitte versuche es erneut.",
+      "sessionFailed": "Anmeldung konnte nicht abgeschlossen werden. Bitte versuche es erneut.",
+      "unavailable": "SWITCH edu-ID ist im Moment nicht erreichbar. Bitte versuche es später erneut oder melde dich mit E-Mail und Passwort an."
+    }
+  },
+  "protectedLayout": {
+    "loadingSession": "Sitzung wird vorbereitet...",
+    "tabs": {
+      "zeiterfassung": "EINGABE",
+      "erfassteZeit": "ÜBERSICHT",
+      "statistiken": "STATISTIKEN"
+    },
+    "adminTabs": {
+      "kursuebersicht": "KURSÜBERSICHT",
+      "nutzeruebersicht": "NUTZERÜBERSICHT",
+      "statistiken": "STATISTIKEN"
+    },
+    "adminModeBadge": "Admin-Modus",
+    "backToEntryAriaLabel": "Zurück zum Zeittagebuch",
+    "backToEntryLine1": "Zurück zur",
+    "backToEntryLine2": "Eingabe",
+    "adminCenterAriaLabel": "Admin-Center öffnen",
+    "adminModeLine1": "Admin-",
+    "adminModeLine2": "Modus",
+    "profileMenuAriaLabel": "Profilmenü öffnen",
+    "profileTooltip": "Profil",
+    "profileNameMissing": "Profilname fehlt",
+    "personalDetailsMenuItem": "Persönliche Angaben",
+    "securityQuestionsMenuItem": "Sicherheitsfragen",
+    "signOutMenuItem": "Ausloggen",
+    "settingsAriaLabel": "Einstellungen öffnen",
+    "settingsTooltip": "Einstellungen",
+    "settingsPanelTitle": "Einstellungen",
+    "settingsPanelDescription": "Darstellung und Kontoinformationen anpassen.",
+    "darkModeTitle": "Darkmode",
+    "darkModeDescription": "Schaltet zwischen heller und dunkler Darstellung um.",
+    "languageTitle": "Sprache",
+    "languageDescription": "Wähle die Sprache der Benutzeroberfläche.",
+    "languageDe": "Deutsch",
+    "languageEn": "English",
+    "tutorialTitle": "Tutorial",
+    "tutorialDescription": "Zeigt dir in ein paar Schritten die wichtigsten Funktionen.",
+    "tutorialRestartButton": "Tutorial neu starten",
+    "accountSectionTitle": "Konto",
+    "userIdLabel": "User ID",
+    "lastLoginLabel": "Letztes Login",
+    "lastLoginNever": "-",
+    "kursuebersichtTitle": "Kursübersicht",
+    "nutzeruebersichtTitle": "Nutzerübersicht",
+    "statistikenTitle": "Statistiken",
+    "confirmDiscardProfileEdit": "Die Profilbearbeitung ist noch nicht gespeichert. Wirklich schliessen?"
+  },
+  "erfassteZeit": {
+    "loadingAriaLabel": "Wird geladen",
+    "loadingCarouselLabel": "Wird geladen…",
+    "dayCountLabel": "{count, plural, one {# Tag} other {# Tage}}",
+    "status": {
+      "abgeschlossen": "Abgeschlossen",
+      "inBearbeitung": "In Bearbeitung",
+      "nichtBegonnen": "Nicht begonnen",
+      "nichtVerfuegbar": "Noch nicht verfügbar"
+    },
+    "errors": {
+      "userLoadError": "Benutzer konnte nicht geladen werden.",
+      "noCourseFound": "Kein Kurs gefunden. Bitte wende dich an deinen Administrator.",
+      "courseInfoLoadError": "Kursinformationen konnten nicht geladen werden.",
+      "daysLoadError": "Tage konnten nicht geladen werden.",
+      "entriesLoadError": "Einträge konnten nicht geladen werden."
+    }
+  },
+  "zeiterfassung": {
+    "gridLoading": "Raster wird geladen...",
+    "questionnaireLoading": "Fragebogen wird geladen...",
+    "noCourseFound": "Kein Kurs gefunden.",
+    "entriesLoadError": "Einträge konnten nicht geladen werden.",
+    "deleteError": "Einträge konnten nicht gelöscht werden.",
+    "saveError": "Eintrag konnte nicht gespeichert werden: {message}",
+    "unknownError": "unbekannter Fehler",
+    "dayCreateError": "Tageseintrag konnte nicht erstellt werden: {message}",
+    "completionBar": {
+      "previousLabel": "Letzter",
+      "nextLabel": "Nächster",
+      "noPreviousDay": "Kein früherer Tag",
+      "noNextDay": "Kein späterer Tag"
+    },
+    "idlePlaceholder": {
+      "title": "Zeitslot auswählen",
+      "line1": "Klicke auf einen Slot – oder halte und ziehe über mehrere aufeinanderfolgende Slots, um eine Zeitspanne auf einmal zu markieren.",
+      "line2": "Danach wählst du Kategorie und Aktivität aus."
+    },
+    "gridToggle": {
+      "label": "Zeitraster",
+      "expand": "▼ Aufklappen",
+      "collapse": "▲ Einklappen"
+    },
+    "abandonDialog": {
+      "title": "Eingabe abbrechen?",
+      "description": "Du hast bereits Angaben gemacht. Wenn du jetzt wechselst, gehen deine bisherigen Eingaben verloren.",
+      "continueButton": "Weiter eingeben",
+      "discardButton": "Ja, verwerfen"
+    }
+  },
+  "activitySelector": {
+    "questions": {
+      "primaryActivity": "Welche Haupttätigkeit hast du ausgeführt?",
+      "secondaryActivity": "Gleichzeitig noch etwas gemacht?",
+      "digitalMedia": "Hast du ein Gerät genutzt? (Smartphone, Tablet, PC…)",
+      "digitalMediaType": "Welche Geräte hast du genutzt?",
+      "ictAttention": "Hast du IKT aktiv genutzt oder lief sie im Hintergrund?",
+      "locationTransport": "Wo warst du während dieser Zeit?",
+      "socialContext": "War jemand anders mit dabei?",
+      "satisfaction": "Wie hast du dich während der Aktivität gefühlt?",
+      "meaningfulness": "Wie bewertest du die Bedeutsamkeit dieser Aktivität für dein/e langfristiges Wohlbefinden / Zufriedenheit?",
+      "stressfulness": "Wie stressig war die Aktivität?"
+    },
+    "stepLabels": {
+      "primaryActivity": "Haupttätigkeit",
+      "secondaryActivity": "Nebentätigkeit",
+      "digitalMedia": "Gerät?",
+      "digitalMediaType": "Geräteart",
+      "locationTransport": "Ort",
+      "socialContext": "Sozial",
+      "satisfaction": "Stimmung"
+    },
+    "slotsRange": {
+      "time": "{start} – {end}",
+      "meta": "{count, plural, one {# Feld} other {# Felder}} · {duration}"
+    },
+    "duration": {
+      "minutes": "{minutes} Min",
+      "hours": "{hours} Std",
+      "hoursMinutes": "{hours} Std {minutes} Min"
+    },
+    "backButton": "Zurück",
+    "continueButton": "Weiter",
+    "activityList": {
+      "categoriesBackLabel": "Kategorien",
+      "noActivitiesFound": "Keine Tätigkeiten gefunden.",
+      "matchCount": "{count, plural, one {# Treffer} other {# Treffer}}",
+      "primarySearchPlaceholder": "Haupttätigkeit oder Stichwort suchen...",
+      "secondarySearchPlaceholder": "Nebentätigkeit oder Stichwort suchen...",
+      "noSecondaryActivityButton": "Keine Nebentätigkeit → Weiter",
+      "optionalBadge": "optional"
+    },
+    "digitalMedia": {
+      "yes": "Ja",
+      "no": "Nein"
+    },
+    "digitalMediaTypeStep": {
+      "validationError": "Bitte wähle mindestens eine Geräteart aus.",
+      "ictAttentionValidationError": "Bitte wähle aus, ob du das Gerät aktiv genutzt hast oder ob es im Hintergrund lief."
+    },
+    "locationCategories": {
+      "orte": "Orte",
+      "privateVerkehrsmittel": "Private Verkehrsmittel",
+      "oeffentlicherVerkehr": "Öffentlicher Verkehr",
+      "sonstiges": "Sonstiges"
+    },
+    "socialContextStep": {
+      "validationError": "Bitte wähle mindestens einen Sozialkontext aus."
+    },
+    "overview": {
+      "timeLabel": "Zeit",
+      "noTimeSlots": "Keine Zeitslots",
+      "categoryLabel": "Kategorie",
+      "mainCategory": "Hauptkategorie: {name}",
+      "selectedCategory": "Gewählte Kategorie: {name}",
+      "mainActivity": "Haupttätigkeit: {name}",
+      "secondaryCategory": "Nebenkategorie: {name}",
+      "secondaryActivity": "Nebentätigkeit: {name}",
+      "nothingSelected": "Noch nichts ausgewählt",
+      "contextLabel": "Kontext",
+      "locationTransport": "Ort/Transport: {name}",
+      "social": "Sozial: {name}",
+      "mediaLabel": "Medien",
+      "moodLabel": "Stimmung",
+      "timeOrderedListing": "Zeitgeführte Auflistung",
+      "noEntry": "Kein Eintrag",
+      "addEntryTitle": "Eintrag hinzufügen",
+      "editTitle": "Bearbeiten",
+      "deleteTitle": "Löschen"
+    }
+  },
+  "statistiken": {
+    "loading": "Wird geladen...",
+    "errors": {
+      "noCourseFound": "Kein Kurs gefunden.",
+      "courseDataLoadError": "Kursdaten konnten nicht geladen werden.",
+      "lookupDataLoadError": "Stammdaten konnten nicht geladen werden."
+    },
+    "tabs": {
+      "zeitverteilung": "Zeitverteilung",
+      "kursvergleich": "Kursvergleich"
+    },
+    "comparisonLocked": {
+      "title": "Kursvergleich ist noch nicht freigeschaltet",
+      "description": "Bitte Kursleitung/Admin:in bitten, den Kursvergleich in der Kursübersicht freizugeben."
+    },
+    "weekLabel": "KW {week}",
+    "uncategorizedLabel": "Ohne Zuordnung",
+    "fallbackLabels": {
+      "unknownDevice": "Gerät #{id}",
+      "unknownContext": "Kontext #{id}",
+      "unknownLocation": "Unbekannt",
+      "noDevice": "Ohne IT-Gerät",
+      "aloneFallback": "Allein"
+    },
+    "comparisonTopics": {
+      "schlaf": "Schlaf",
+      "sport": "Sport & Bewegung",
+      "smartphone": "Smartphone"
+    },
+    "perDayUnit": "h/Tag",
+    "zeitverteilung": {
+      "dayFilter": {
+        "label": "Tage",
+        "all": "Alle",
+        "weekdays": "Werktage",
+        "weekend": "Wochenende"
+      },
+      "weekFilter": {
+        "label": "KW",
+        "all": "Alle"
+      },
+      "chart": {
+        "title": "Tägliche Zeitverteilung",
+        "noDays": "Keine Tage für den gewählten Filter vorhanden.",
+        "notSubmitted": "Noch nicht eingereicht"
+      },
+      "metaLists": {
+        "devicesTitle": "Geräte-Nutzung",
+        "devicesTitleAvg": "Geräte-Nutzung (Ø/Tag)",
+        "socialTitle": "Sozialer Kontext",
+        "socialTitleAvg": "Sozialer Kontext (Ø/Tag)",
+        "locationsTitle": "Orte & Transport",
+        "locationsTitleAvg": "Orte & Transport (Ø/Tag)",
+        "noData": "Keine Daten",
+        "wellbeingTitle": "Ø Wohlbefinden",
+        "wellbeingSubtitle": "Zeitgewichtet nach Dauer der Einträge"
+      },
+      "table": {
+        "title": "Zeitverteilung nach Kategorie",
+        "noEntries": "Noch keine eingereichten Einträge vorhanden.",
+        "viewModeTotal": "Gesamt",
+        "viewModeAvgPerDay": "Ø / Tag",
+        "showMeta": "Metavariablen anzeigen",
+        "hideMeta": "Metavariablen ausblenden",
+        "columns": {
+          "category": "Kategorie",
+          "time": "Zeit",
+          "timeAvg": "Ø / Tag",
+          "percent": "Anteil",
+          "itDevice": "IT Gerät",
+          "social": "Sozial",
+          "location": "Ort",
+          "satisfaction": "Ø Gefühl"
+        },
+        "satisfactionColumnTitle": "Zeitgewichteter Mittelwert der ausgewählten Gefühlsstufen innerhalb der Zeile",
+        "pairLabels": {
+          "withIt": "mit IT",
+          "withoutIt": "ohne IT",
+          "withOthers": "mit anderen",
+          "alone": "allein",
+          "atHome": "zuhause",
+          "elsewhere": "anderswo"
+        }
+      }
+    },
+    "kursvergleich": {
+      "readingAid": "Ø Kurs · «über X % der Gruppe» = so viele Teilnehmende liegen unter deinem Wert · anonym, keine Einzelwerte anderer Personen",
+      "you": "du",
+      "youShort": "Du",
+      "courseShort": "Kurs",
+      "focusSubtitle": "Ø Stunden pro abgegebenem Tag",
+      "categoryTitle": "Zeitverteilung im Kursvergleich",
+      "categorySubtitle": "Ø Stunden pro abgegebenem Tag je Lebensbereich",
+      "noComparableData": "Noch keine vergleichbaren Daten.",
+      "contextMetrics": {
+        "itDevice": {
+          "label": "Zeit mit IT-Gerät",
+          "description": "Anteil der Zeit mit Smartphone, Laptop & Co."
+        },
+        "social": {
+          "label": "Zeit mit anderen",
+          "description": "Anteil der Zeit in Gesellschaft statt allein"
+        },
+        "location": {
+          "label": "Zeit zuhause",
+          "description": "Anteil der Zeit zuhause statt anderswo"
+        },
+        "wellbeing": {
+          "label": "Wohlbefinden",
+          "description": "Ø zeitgewichtet, Skala 1–{max}"
+        }
+      },
+      "wellbeingSubtitle": "du: {you} · Kurs: {course} · Skala 1–{max}",
+      "verdict": {
+        "noOwnData": "keine eigenen Daten",
+        "inAverage": "im Kursschnitt",
+        "hoursDiff": "{sign}{value} h/Tag ggü. Kurs",
+        "hoursDiffShort": "{sign}{value} h/Tag",
+        "percentDiff": "{sign}{value} %-Pkt. ggü. Kurs",
+        "pointsDiff": "{sign}{value} Pkt. ggü. Kurs",
+        "above": "über {percentile}% der Gruppe",
+        "highest": "höchster Wert der Gruppe",
+        "lowest": "tiefster Wert der Gruppe",
+        "percentDiffShort": "{sign}{value} %-Pkt.",
+        "pointsDiffShort": "{sign}{value} Pkt."
+      },
+      "notEnoughUsers": {
+        "title": "Vergleich noch nicht verfügbar",
+        "description": "Für den Kursvergleich müssen mindestens {minUsers} Teilnehmende jeweils 2 Tage eingereicht haben. Schau später nochmal rein!",
+        "qualifying": "Aktuell qualifiziert: {count} / {minUsers} Personen"
+      }
+    },
+    "satisfactionLevels": {
+      "1": "sehr schlecht",
+      "2": "schlecht",
+      "3": "mittelmässig",
+      "4": "gut",
+      "5": "sehr gut"
+    },
+    "pdf": {
+      "button": "PDF",
+      "buttonBusy": "PDF…",
+      "buttonTitle": "Persönliche Auswertung als PDF herunterladen",
+      "filter": {
+        "allDays": "Alle Kurstage",
+        "weekdaysOnly": "nur Werktage",
+        "weekendOnly": "nur Wochenende"
+      },
+      "title": "Persönliche Zeitnutzungs-Auswertung",
+      "courseLine": "Kurs: {name}",
+      "participantLine": "Teilnehmer:in: {name}",
+      "participantIdLine": "Teilnehmer-ID: {id}",
+      "periodLine": "Zeitraum: {filter} · Erstellt am {date}",
+      "privacyNote": "Diese Auswertung enthält ausschliesslich deine eigenen Zeitnutzungsdaten. Kurswerte sind Durchschnitte über mindestens drei anonyme Teilnehmende; Einzelwerte anderer Personen sind nicht enthalten. Die Teilnehmer-ID dient dir als Referenz.",
+      "kpi": {
+        "submittedDays": "Abgegebene Tage",
+        "submittedDaysHint": "im gewählten Zeitraum",
+        "trackedTime": "Erfasste Zeit",
+        "trackedTimeHint": "Ø {hours} h pro Tag",
+        "wellbeing": "Ø Wohlbefinden",
+        "wellbeingHint": "zeitgewichtet",
+        "itShare": "Zeit mit IT-Gerät",
+        "itShareHint": "Anteil der erfassten Zeit"
+      },
+      "daily": {
+        "title": "Tägliche Zeitverteilung",
+        "subtitle": "Stunden pro Kurstag nach Kategorie · grau: Tag nicht abgegeben",
+        "noDays": "Keine Tage für den gewählten Zeitraum vorhanden."
+      },
+      "categories": {
+        "title": "Zeitverteilung nach Kategorie",
+        "subtitleWithCourse": "Ø Stunden pro abgegebenem Tag · farbig: du · grau: Ø Kurs",
+        "subtitle": "Ø Stunden pro abgegebenem Tag",
+        "noEntries": "Noch keine Zeiteinträge vorhanden.",
+        "colCategory": "Kategorie",
+        "colBars": "Ø h/Tag (du / Kurs)",
+        "colBarsSolo": "Ø h/Tag",
+        "colPerDay": "Ø / Tag",
+        "colCourse": "Ø Kurs",
+        "colDiff": "Differenz",
+        "colPosition": "Einordnung",
+        "colTotal": "Gesamt",
+        "colShare": "Anteil"
+      },
+      "comparison": {
+        "title": "Kursvergleich – wo stehst du?",
+        "subtitle": "Vergleich mit {count} anonymen Teilnehmenden (je mind. 2 abgegebene Tage) · blau: dein Wert · gestrichelt: Ø Kurs",
+        "notEnabled": "Der Kursvergleich ist für diesen Kurs (noch) nicht freigeschaltet.",
+        "notEnough": "Noch nicht verfügbar: mindestens 3 Teilnehmende mit je 2 abgegebenen Tagen nötig (aktuell {count}).",
+        "yourValue": "Dein Wert {value} {unit}",
+        "courseValue": "Ø Kurs {value} {unit}",
+        "positionAbove": "Du liegst über {percentile}% der Kursgruppe",
+        "positionBelow": "Du liegst unter {percentile}% der Kursgruppe",
+        "positionNone": "Keine eigenen Einträge in diesem Zeitraum",
+        "colMetric": "Merkmal",
+        "colYou": "Du",
+        "colCourse": "Ø Kurs",
+        "itDevice": "IT-Gerät (mit / ohne)",
+        "social": "Sozial (mit anderen / allein)",
+        "location": "Ort (zuhause / anderswo)",
+        "wellbeing": "Wohlbefinden (Ø, zeitgewichtet)"
+      },
+      "context": {
+        "title": "Kontext deiner Zeit",
+        "subtitle": "Womit, mit wem und wo du deine erfasste Zeit verbracht hast (Anteil an der Gesamtzeit)",
+        "devices": "Geräte-Nutzung",
+        "social": "Sozialer Kontext",
+        "locations": "Orte & Transport"
+      },
+      "activities": {
+        "title": "Deine Top-Aktivitäten",
+        "subtitle": "Die 12 Tätigkeiten mit der meisten Zeit · Wohlbefinden zeitgewichtet · IT: Anteil der Zeit mit Gerät",
+        "colCategory": "Kategorie",
+        "colActivity": "Aktivität",
+        "colTime": "Zeit",
+        "colShare": "Anteil",
+        "colWellbeing": "Ø Wohlbefinden",
+        "colIt": "IT"
+      },
+      "footer": "Time Use Tool · Persönliche Auswertung · Nur eigene Daten und anonyme Kursdurchschnitte",
+      "page": "Seite {page} / {total}",
+      "fileName": "Zeitnutzung",
+      "diffAverage": "im Kursschnitt",
+      "diffHours": "{sign}{value} h/Tag",
+      "minutesShort": "{minutes} min",
+      "hoursShort": "{hours} h",
+      "hoursMinutes": "{hours} h {minutes} min"
+    }
+  },
+  "common": {
+    "confirmButton": "Bestätigen",
+    "cancelButton": "Abbrechen",
+    "closeButton": "Schliessen"
+  },
+  "kursuebersicht": {
+    "subTabs": {
+      "alleKurse": "Alle Kurse",
+      "neuerKurs": "Neuer Kurs"
+    },
+    "loading": "Wird geladen…",
+    "errors": {
+      "coursesLoadError": "Kurse konnten nicht geladen werden.",
+      "fillAllFields": "Bitte alle Felder ausfüllen.",
+      "periodDatesRequired": "Bitte für jeden Zeitraum Start- und Enddatum angeben.",
+      "periodEndBeforeStart": "Das Enddatum muss nach dem Startdatum liegen.",
+      "courseCreateError": "Kurs konnte nicht erstellt werden: {message}",
+      "periodsSaveError": "Zeiträume konnten nicht gespeichert werden: {message}"
+    },
+    "newCourseForm": {
+      "nameLabel": "Kursname",
+      "namePlaceholder": "z. B. Sommersemester 2026",
+      "periodsLabel": "Zeiträume",
+      "addPeriodButton": "Zeitraum hinzufügen",
+      "periodStartLabel": "Zeitraum {index} – Start",
+      "startDateLabel": "Startdatum",
+      "periodEndLabel": "Ende",
+      "endDateLabel": "Enddatum",
+      "removePeriodTitle": "Zeitraum entfernen",
+      "accessCodeLabel": "Zugangscode",
+      "accessCodePlaceholder": "z. B. SS2026",
+      "askExtraRatingsLabel": "Bedeutsamkeit & Stressbelastung abfragen",
+      "askIctAttentionLabel": "Bei Gerätenutzung mit Nebentätigkeit nach Fokus fragen (aktiv / im Hintergrund)",
+      "askDayQuestionnaireLabel": "Tagesfragebogen abfragen",
+      "createSuccess": "Kurs wurde erfolgreich erstellt.",
+      "creatingButton": "Wird erstellt…",
+      "createButton": "Kurs erstellen"
+    },
+    "breadcrumb": {
+      "allCourses": "Alle Kurse"
+    },
+    "courseList": {
+      "noCourses": "Noch keine Kurse vorhanden.",
+      "participantsLabel": "{count, plural, one {# Teilnehmer} other {# Teilnehmer}}",
+      "anonymizedBadge": "Anonymisiert",
+      "comparisonEnabledBadge": "Kursvergleich frei",
+      "comparisonDisabledBadge": "Kursvergleich gesperrt",
+      "extraRatingsEnabledBadge": "Bedeutsamkeit & Stress aktiv",
+      "ictAttentionEnabledBadge": "Geräte-Fokus aktiv",
+      "dayQuestionnaireEnabledBadge": "Tagesfragebogen aktiv",
+      "accessCodeLabel": "Zugangscode:",
+      "saveButton": "Speichern",
+      "cancelButton": "Abbrechen",
+      "changeButton": "Ändern",
+      "endCourseButton": "Kurs beenden",
+      "endCourseConfirm": {
+        "title": "Kurs beenden",
+        "message": "Soll der Kurs „{name}\" wirklich beendet werden? Diese Aktion kann nicht rückgängig gemacht werden.",
+        "confirmLabel": "Beenden"
+      }
+    },
+    "courseDetail": {
+      "backToOverviewButton": "Zur Kursübersicht",
+      "exportButton": "Datenexport",
+      "comparisonEnableButton": "Kursvergleich freigeben",
+      "comparisonDisableButton": "Kursvergleich sperren",
+      "extraRatingsEnableButton": "Bedeutsamkeit & Stress aktivieren",
+      "extraRatingsDisableButton": "Bedeutsamkeit & Stress deaktivieren",
+      "ictAttentionEnableButton": "Geräte-Fokus aktivieren",
+      "ictAttentionDisableButton": "Geräte-Fokus deaktivieren",
+      "dayQuestionnaireEnableButton": "Tagesfragebogen aktivieren",
+      "dayQuestionnaireDisableButton": "Tagesfragebogen deaktivieren",
+      "anonymizeButton": "Kurs anonymisieren",
+      "anonymizingButton": "Anonymisiere…",
+      "anonymizeConfirm": {
+        "title": "Kurs anonymisieren",
+        "message": "Alle Teilnehmer erhalten ein Alias (TN-0001, TN-0002, …). Realnamen und E-Mail-Adressen werden in der Admin-Ansicht durch Aliases ersetzt. Diese Aktion kann nicht rückgängig gemacht werden.",
+        "confirmLabel": "Anonymisieren"
+      },
+      "noParticipants": "Keine Teilnehmer in diesem Kurs.",
+      "table": {
+        "participantColumn": "Teilnehmer",
+        "progressColumn": "Fortschritt",
+        "actionsColumn": "Aktionen",
+        "daysUnit": "Tage",
+        "includeButton": "Einschliessen",
+        "excludeButton": "Ausschliessen",
+        "includeConfirm": {
+          "title": "Ausschluss aufheben",
+          "message": "Die Daten von {name} werden wieder in den Statistiken berücksichtigt.",
+          "confirmLabel": "Aufheben"
+        },
+        "excludeConfirm": {
+          "title": "Aus Statistiken ausschliessen",
+          "message": "Die Daten von {name} werden aus allen Statistiken entfernt. Der Teilnehmer wird nicht informiert.",
+          "confirmLabel": "Ausschliessen"
+        },
+        "removeButton": "Entfernen",
+        "removeConfirm": {
+          "title": "Teilnehmer entfernen",
+          "message": "Soll {name} wirklich aus dem Kurs entfernt werden? Die Zeiteinträge bleiben erhalten.",
+          "confirmLabel": "Entfernen"
+        },
+        "dayQuestionnairesProgress": "{answered} / {total} Tagesfragen beantwortet"
+      },
+      "anonymizeError": "Die Anonymisierung ist fehlgeschlagen – der Kurs wurde nicht als anonymisiert markiert. Bitte versuche es erneut."
+    },
+    "exportModal": {
+      "title": "Datenexport",
+      "subtitle": "Wähle Inhalt und Dateiformat für diesen Kurs.",
+      "closeAriaLabel": "Exportdialog schliessen",
+      "privacyNote": "Der Export enthält keine Namen, E-Mails, IDs, Aliase oder Datumsangaben. Die Zeilen sind zufällig gemischt und können keiner Person zugeordnet werden. Ausgeschlossene Teilnehmende und nicht abgegebene Tage werden nicht berücksichtigt. Mindestens 3 Teilnehmende mit Daten sind nötig.",
+      "contentLabel": "Inhalt",
+      "aggregatedOption": "Aggregiert",
+      "rawOption": "Rohdaten",
+      "aggregatedDescription": "Eine anonyme Zeile pro Teilnehmer:in mit Ø Stunden pro abgegebenem Tag je Kategorie, plus Kursdurchschnitt.",
+      "rawDescription": "Eine Zeile pro Zeiteintrag (Start, Ende, Tätigkeit, Ort, Kontext, Wohlbefinden, Stress, Sinnhaftigkeit) – ohne Personen- oder Tagesbezug.",
+      "researchOption": "Forschungsdaten",
+      "researchDescription": "Excel mit drei Blättern, verknüpfbar über die PersonID: Zeitnutzung (eine Zeile pro Eintrag, mit Datum), Tage (inkl. Tagesfragen) und Personen (Angaben aus dem Profil-Survey). Als CSV werden drei Dateien heruntergeladen.",
+      "researchPrivacyNote": "Pseudonymisiert für die wissenschaftliche Auswertung: Statt Namen und E-Mails enthält der Export eine PersonID (z.B. P-3F9A1C) sowie das Datum jedes Tages. Unvollständige Tage sind enthalten und mit «Tag vollständig = Nein» markiert. Ausgeschlossene Teilnehmende werden nicht berücksichtigt. Nur gemäss Ethikbewilligung verwenden und nicht weitergeben.",
+      "formatLabel": "Format",
+      "csvButton": "CSV",
+      "excelButton": "Excel",
+      "exportingLabel": "Exportiere...",
+      "exportError": "Export konnte nicht erstellt werden."
+    },
+    "userDetail": {
+      "backToCourseButton": "Zurück zum Kurs",
+      "backToOverviewButton": "Zur Kursübersicht",
+      "loading": "Wird geladen…",
+      "daysCompleted": "/ {total} Tage abgeschlossen",
+      "privacyNote": "Pro Person ist nur ersichtlich, ob die Eingabe eines Tages abgeschlossen und die Tagesfragen beantwortet wurden – nicht die Antworten selbst. Zeitnutzungsdaten sind für Admins nur in den Statistiken und im Datenexport einsehbar – anonym oder, für die Forschung, pseudonymisiert ohne Namen und E-Mails."
+    },
+    "dayList": {
+      "noCourseDays": "Für diesen Kurs sind keine Kurstage hinterlegt.",
+      "colDay": "Kurstag",
+      "colCompleted": "Abgeschlossen",
+      "yes": "Ja",
+      "no": "Nein",
+      "colDayQuestionnaire": "Tagesfragen",
+      "pending": "Offen"
+    },
+    "csvExport": {
+      "firstName": "Vorname",
+      "lastName": "Nachname",
+      "daysRecorded": "Tage erfasst",
+      "categoryHoursColumn": "{category} (h)",
+      "date": "Datum",
+      "start": "Start",
+      "end": "Ende",
+      "durationMin": "Dauer (min)",
+      "durationH": "Dauer (h)",
+      "category": "Kategorie",
+      "activity": "Aktivitaet",
+      "secondaryActivity": "Nebenaktivitaet",
+      "digitalMediaUsed": "Digitale Medien genutzt",
+      "yes": "Ja",
+      "no": "Nein",
+      "mediaTypes": "Medienarten",
+      "locationTransport": "Ort / Transport",
+      "socialContext": "Sozialer Kontext",
+      "satisfaction": "Zufriedenheit",
+      "sheetName": "Statistiken",
+      "modeAggregated": "Aggregiert",
+      "modeRaw": "Roh"
+    }
+  },
+  "nutzeruebersicht": {
+    "loading": "Wird geladen…",
+    "loadError": "Nutzerdaten konnten nicht geladen werden.",
+    "kpis": {
+      "activeUsers": "Aktive Nutzer",
+      "completedDays": "Abgeschlossene Tage",
+      "completedDaysSubtitle": "Gesamt aller Nutzer",
+      "avgCompletionRate": "Ø Abschlussquote",
+      "avgCompletionRateSubtitle": "Ø aller gestarteten Nutzer"
+    },
+    "searchPlaceholder": "Nutzer suchen…",
+    "noUserFound": "Kein Nutzer gefunden.",
+    "noActiveUsers": "Keine aktiven Nutzer vorhanden.",
+    "courseLabel": "Kurs",
+    "progressLabel": "Fortschritt",
+    "progressDaysLabel": "{submitted} / {total} Tage",
+    "daysUnit": "Tage",
+    "noCoursePlaceholder": "–",
+    "includeButton": "Einschliessen",
+    "excludeButton": "Ausschliessen",
+    "createUserButton": "Account anlegen",
+    "setPasswordButton": "Temp-Passwort setzen",
+    "deleteButton": "Löschen",
+    "deleteError": "Nutzer konnte nicht gelöscht werden.",
+    "authMethodBadge": {
+      "switchEduId": "SWITCH edu-ID",
+      "password": "E-Mail & Passwort"
+    },
+    "mustChangePasswordBadge": "Passwortwechsel ausstehend",
+    "table": {
+      "user": "Nutzer",
+      "course": "Kurs",
+      "progress": "Fortschritt",
+      "authMethod": "Anmeldeart",
+      "actions": "Aktionen"
+    },
+    "includeConfirm": {
+      "title": "Ausschluss aufheben",
+      "message": "Die Daten von {name} werden wieder in allen Statistiken berücksichtigt.",
+      "confirmLabel": "Aufheben"
+    },
+    "excludeConfirm": {
+      "title": "Nutzer ausschliessen",
+      "message": "Die Daten von {name} werden aus allen Statistiken entfernt. Der Nutzer wird darüber nicht informiert.",
+      "confirmLabel": "Ausschliessen"
+    },
+    "deleteConfirm": {
+      "title": "Nutzer löschen",
+      "message": "Das Konto von {name} wird unwiderruflich gelöscht, inklusive aller erfassten Zeiten.",
+      "confirmLabel": "Löschen"
+    },
+    "createUserModal": {
+      "title": "Account anlegen",
+      "description": "Für Nutzer ohne SWITCH edu-ID. Das temporäre Passwort muss beim ersten Login neu gesetzt werden.",
+      "emailLabel": "E-Mail",
+      "firstNameLabel": "Vorname",
+      "lastNameLabel": "Nachname",
+      "temporaryPasswordLabel": "Temporäres Passwort",
+      "generateButton": "Generieren",
+      "createButton": "Account anlegen",
+      "creatingButton": "Wird angelegt...",
+      "createdTitle": "Account angelegt",
+      "createdMessage": "Konto für {email} wurde angelegt. Bitte gib dieses temporäre Passwort weiter — es wird nicht erneut angezeigt:",
+      "createFailedError": "Account konnte nicht angelegt werden.",
+      "networkError": "Netzwerkfehler beim Anlegen des Accounts."
+    },
+    "setPasswordModal": {
+      "title": "Temporäres Passwort setzen",
+      "description": "Für {name}. Beim nächsten Login muss ein neues Passwort gesetzt werden.",
+      "switchEduIdWarning": "Dieser Nutzer meldet sich aktuell über SWITCH edu-ID an. Passwort trotzdem setzen?",
+      "temporaryPasswordLabel": "Temporäres Passwort",
+      "generateButton": "Generieren",
+      "saveButton": "Passwort setzen",
+      "savingButton": "Wird gespeichert...",
+      "forceConfirmButton": "Trotzdem setzen",
+      "saveFailedError": "Passwort konnte nicht gesetzt werden.",
+      "networkError": "Netzwerkfehler beim Setzen des Passworts."
+    },
+    "adminBadge": "Admin",
+    "makeAdminButton": "Zum Admin machen",
+    "removeAdminButton": "Admin-Rechte entfernen",
+    "roleError": "Die Rolle konnte nicht geändert werden.",
+    "cannotRemoveOwnAdmin": "Du kannst dir die Admin-Rechte nicht selbst entfernen.",
+    "makeAdminConfirm": {
+      "title": "Zum Admin machen",
+      "message": "{name} erhält Admin-Rechte: Zugriff auf Kursübersicht, Nutzerübersicht, Statistiken und Exporte, und kann andere Nutzer verwalten. Soll {name} wirklich Admin werden?",
+      "confirmLabel": "Zum Admin machen"
+    },
+    "removeAdminConfirm": {
+      "title": "Admin-Rechte entfernen",
+      "message": "{name} verliert alle Admin-Rechte und sieht danach nur noch die normale Ansicht. Sollen die Admin-Rechte wirklich entfernt werden?",
+      "confirmLabel": "Admin-Rechte entfernen"
+    }
+  },
+  "adminStatistiken": {
+    "loading": "Statistiken werden geladen…",
+    "loadError": "Statistiken konnten nicht geladen werden.",
+    "kpis": {
+      "totalUsers": "Gesamtnutzer",
+      "courses": "Kurse",
+      "coursesSubtitle": "{active} aktiv · {closed} abgeschlossen",
+      "newEntries7d": "Neue Einträge (7 Tage)",
+      "totalEntries": "Einträge gesamt"
+    },
+    "activeUsersTrend": {
+      "title": "Aktive Nutzer — letzte 14 Tage",
+      "noActivity": "Keine Aktivität in den letzten 14 Tagen.",
+      "tooltipActiveUsers": "{count} aktive Nutzer"
+    },
+    "courseProgress": {
+      "title": "Kursfortschritt",
+      "noCourseData": "Keine Kursdaten vorhanden.",
+      "legendOpen": "Offen",
+      "legendInProgress": "Laufend",
+      "legendDone": "Abgeschlossen"
+    },
+    "topActivities": {
+      "title": "Top 7 Haupttätigkeiten",
+      "noEntries": "Noch keine Einträge vorhanden.",
+      "tooltipEntries": "{count} Einträge",
+      "tooltipCount": "Anzahl",
+      "fallbackActivity": "Aktivität #{id}"
+    },
+    "categoryDistribution": {
+      "title": "Aktivitätskategorien — Zeitverteilung",
+      "noEntries": "Noch keine Einträge vorhanden.",
+      "fallbackCategory": "Kategorie #{id}"
+    },
+    "wellbeing": {
+      "title": "Wohlbefinden-Verteilung",
+      "noEntries": "Noch keine Einträge vorhanden."
+    }
+  },
+  "profileDetailsForm": {
+    "loadingProfile": "Profil wird geladen…",
+    "noResultsFound": "Keine Treffer",
+    "title": "Profil",
+    "subtitle": "Deine persönlichen Angaben",
+    "popupHint": "Die wichtigsten Kontodaten findest du zusätzlich im Profil-Popup oben rechts.",
+    "savedMessage": "Profil gespeichert!",
+    "editButton": "Bearbeiten",
+    "saveButton": "Speichern",
+    "savingButton": "Speichern...",
+    "saveProfileButton": "Profil speichern",
+    "genericSaveError": "Fehler beim Speichern: {message}",
+    "unknownError": "Unbekannter Fehler",
+    "missingFieldsError": "Bitte fülle alle Pflichtfelder aus.",
+    "fillOrSelectHint": "Bitte ausfüllen oder auswählen.",
+    "accountBar": {
+      "nameLabel": "Name:",
+      "emailLabel": "Email:",
+      "userIdLabel": "User ID:",
+      "roleLabel": "Rolle:",
+      "lastLoginLabel": "Letzter Login:",
+      "roleAdmin": "Admin",
+      "roleUser": "User"
+    },
+    "fields": {
+      "firstName": {
+        "label": "Vorname",
+        "placeholder": "z.B. Max"
+      },
+      "lastName": {
+        "label": "Nachname",
+        "placeholder": "z.B. Mustermann"
+      },
+      "gender": {
+        "label": "Geschlecht"
+      },
+      "age": {
+        "label": "Alter",
+        "placeholder": "z.b. 32"
+      },
+      "maritalStatus": {
+        "label": "Zivilstand / Familienstand"
+      },
+      "partnerInHousehold": {
+        "label": "Lebt ein/e Partner/in im selben Haushalt?",
+        "yes": "Ja",
+        "no": "Nein"
+      },
+      "childrenInHousehold": {
+        "label": "Anzahl Kinder im Haushalt"
+      },
+      "educationLevel": {
+        "label": "Höchster abgeschlossener Bildungsabschluss"
+      },
+      "employmentStatus": {
+        "label": "Aktueller Erwerbsstatus",
+        "helper": "Mehrfachauswahl möglich, maximal 2 Antworten."
+      },
+      "occupationalStatus": {
+        "label": "Stellung im Beruf"
+      },
+      "weeklyWorkHours": {
+        "label": "Übliche Wochenarbeitszeit",
+        "placeholder": "z.B. 40"
+      },
+      "mainWorkplace": {
+        "label": "Hauptarbeitsort"
+      },
+      "nationality": {
+        "label": "Staatsangehörigkeit",
+        "searchPlaceholder": "Staatsangehörigkeit suchen…"
+      },
+      "region": {
+        "label": "Region / Wohnort",
+        "searchPlaceholder": "Region suchen…"
+      },
+      "healthStatus": {
+        "label": "Allgemeiner Gesundheitszustand"
+      },
+      "urbanity": {
+        "label": "Urbanität"
+      }
+    }
+  },
+  "enrollmentModal": {
+    "loadCoursesError": "Kurse konnten nicht geladen werden.",
+    "selectCourseError": "Bitte wähle einen Kurs aus.",
+    "enterAccessCodeError": "Bitte gib den Zugangscode ein.",
+    "courseLoadRetryError": "Kurs konnte nicht geladen werden. Bitte versuche es erneut.",
+    "invalidAccessCodeError": "Ungültiger Zugangscode. Bitte versuche es erneut.",
+    "enrollFailedError": "Einschreibung fehlgeschlagen. Bitte versuche es erneut.",
+    "title": "Kurs beitreten",
+    "description": "Du bist noch keinem Kurs zugewiesen. Wähle einen Kurs aus und gib den Zugangscode ein, um fortzufahren.",
+    "loading": "Wird geladen...",
+    "noCoursesAvailable": "Derzeit sind keine Kurse verfügbar. Bitte wende dich an deinen Administrator.",
+    "selectCourseLabel": "Kurs auswählen",
+    "accessCodeLabel": "Zugangscode",
+    "accessCodePlaceholder": "Zugangscode eingeben",
+    "submitButton": "Kurs beitreten",
+    "submittingButton": "Wird eingeschrieben...",
+    "backToLoginButton": "Zurück zum Login"
+  },
+  "securityQuestionsForm": {
+    "loadQuestionsError": "Sicherheitsfragen konnten nicht geladen werden.",
+    "userLoadError": "Nutzer konnte nicht geladen werden.",
+    "incompleteError": "Bitte wähle zwei Fragen und gib beide Antworten an.",
+    "duplicateQuestionError": "Bitte wähle zwei unterschiedliche Sicherheitsfragen aus.",
+    "unexpectedServerResponse": "Unerwartete Serverantwort beim Speichern.",
+    "saveFailedWithStatus": "Sicherheitsfragen konnten nicht gespeichert werden (Status {status}).",
+    "verifyFailedError": "Speichern wurde ausgeführt, konnte aber nicht bestätigt werden. Bitte erneut versuchen.",
+    "networkError": "Netzwerkfehler beim Speichern der Sicherheitsfragen.",
+    "loading": "Sicherheitsfragen werden geladen…",
+    "title": "Sicherheitsfragen",
+    "description": "Wähle zwei unterschiedliche Fragen aus und beantworte sie möglichst mit einem kurzen Wort.",
+    "alreadySetHint": "Sicherheitsfragen sind hinterlegt. Antworten werden aus Sicherheitsgründen nicht angezeigt und müssen bei einer Änderung neu eingegeben werden.",
+    "editButton": "Bearbeiten",
+    "questionLabel": "Frage {index}",
+    "selectPlaceholder": "Bitte auswählen",
+    "answerLabel": "Antwort",
+    "answerPlaceholderEditable": "Kurze Antwort",
+    "answerPlaceholderHidden": "Aus Sicherheitsgründen ausgeblendet",
+    "savedMessage": "Sicherheitsfragen wurden gespeichert.",
+    "saveButton": "Sicherheitsfragen speichern",
+    "savingButton": "Wird gespeichert..."
+  },
+  "mustChangePassword": {
+    "title": "Neues Passwort erforderlich",
+    "description": "Ein Admin hat für dein Konto ein temporäres Passwort gesetzt. Bitte lege jetzt ein neues, eigenes Passwort fest, bevor du fortfährst.",
+    "newPasswordLabel": "Neues Passwort",
+    "confirmPasswordLabel": "Passwort bestätigen",
+    "passwordTooShort": "Passwort muss mindestens 6 Zeichen lang sein.",
+    "passwordMismatch": "Die Passwörter stimmen nicht überein.",
+    "unexpectedServerResponse": "Unerwartete Serverantwort beim Speichern.",
+    "saveFailedError": "Passwort konnte nicht geändert werden.",
+    "networkError": "Netzwerkfehler beim Ändern des Passworts.",
+    "saveButton": "Passwort speichern",
+    "savingButton": "Wird gespeichert...",
+    "currentPasswordLabel": "Aktuelles (temporäres) Passwort",
+    "currentPasswordRequired": "Bitte gib dein aktuelles (temporäres) Passwort ein."
+  },
+  "apiErrors": {
+    "changePassword": {
+      "notAuthenticated": "Nicht angemeldet.",
+      "passwordTooShort": "Passwort muss mindestens 6 Zeichen lang sein.",
+      "currentPasswordWrong": "Das aktuelle Passwort ist falsch.",
+      "newPasswordSameAsCurrent": "Das neue Passwort muss sich vom aktuellen unterscheiden."
+    },
+    "adminUsers": {
+      "invalidRequest": "Ungültige Anfrage.",
+      "invalidEmail": "Bitte gib eine gültige E-Mail-Adresse ein.",
+      "passwordTooShort": "Passwort muss mindestens 6 Zeichen lang sein.",
+      "createFailed": "Konto konnte nicht erstellt werden.",
+      "userNotFound": "Nutzer nicht gefunden.",
+      "switchEduIdAccountNeedsForce": "Dieser Nutzer meldet sich aktuell über SWITCH edu-ID an. Passwort trotzdem setzen?",
+      "cannotDeleteSelf": "Du kannst dein eigenes Konto nicht löschen.",
+      "deleteFailed": "Nutzer konnte nicht gelöscht werden."
+    },
+    "passwordResetComplete": {
+      "invalidRequest": "Ungültige Anfrage.",
+      "passwordTooShort": "Passwort muss mindestens 6 Zeichen lang sein.",
+      "invalidOrExpiredLink": "Der Reset-Link ist ungültig oder abgelaufen."
+    },
+    "passwordResetSecurityQuestions": {
+      "emailRequired": "Bitte gib eine E-Mail-Adresse ein.",
+      "loadError": "Sicherheitsfragen konnten nicht geladen werden."
+    },
+    "passwordResetVerify": {
+      "answerBothRequired": "Bitte beantworte beide Sicherheitsfragen.",
+      "checkFailed": "Sicherheitsfragen konnten nicht geprüft werden.",
+      "answersDontMatch": "Die Antworten stimmen nicht mit den hinterlegten Angaben überein. Falls du keine Sicherheitsfragen hinterlegt hast, wende dich an einen Admin.",
+      "resetPrepareFailed": "Reset konnte nicht vorbereitet werden.",
+      "tooManyAttempts": "Zu viele Versuche. Bitte warte 15 Minuten und versuche es dann erneut."
+    },
+    "securityQuestions": {
+      "notAuthenticated": "Nicht angemeldet.",
+      "loadError": "Sicherheitsfragen konnten nicht geladen werden.",
+      "invalidRequest": "Ungültige Anfrage. Bitte versuche es erneut.",
+      "needTwoQuestions": "Bitte gib genau zwei Sicherheitsfragen an.",
+      "needTwoDifferentQuestions": "Bitte gib zwei unterschiedliche Fragen mit Antwort an.",
+      "internalError": "Interner Fehler beim Speichern der Sicherheitsfragen."
+    },
+    "courseExport": {
+      "invalidRequest": "Ungültige Anfrage.",
+      "courseNotFound": "Kurs nicht gefunden.",
+      "tooFewParticipants": "Export nicht möglich: Mindestens {minimum} Teilnehmende mit abgegebenen Tagen sind nötig, damit einzelne Zeilen nicht einer Person zugeordnet werden können (aktuell {participants}).",
+      "exportFailed": "Export konnte nicht erstellt werden.",
+      "columns": {
+        "rowLabel": "Zeile",
+        "anonymousParticipant": "Teilnehmer:in (anonym)",
+        "courseAverage": "Kursdurchschnitt",
+        "hoursPerDaySuffix": "(h/Tag)",
+        "totalTracked": "Erfasst gesamt (h/Tag)",
+        "start": "Start",
+        "end": "Ende",
+        "durationMinutes": "Dauer (min)",
+        "durationHours": "Dauer (h)",
+        "category": "Kategorie",
+        "activity": "Aktivität",
+        "secondaryActivity": "Nebenaktivität",
+        "digitalMediaUsed": "Digitale Medien genutzt",
+        "mediaTypes": "Medienarten",
+        "ictAttention": "Geräte-Fokus",
+        "locationTransport": "Ort / Transport",
+        "socialContext": "Sozialer Kontext",
+        "wellbeing": "Wohlbefinden",
+        "stressfulness": "Stress",
+        "meaningfulness": "Sinnhaftigkeit",
+        "yes": "Ja",
+        "no": "Nein"
+      },
+      "research": {
+        "sheets": {
+          "timeUse": "Zeitnutzung",
+          "days": "Tage",
+          "persons": "Personen"
+        },
+        "personId": "PersonID",
+        "date": "Datum",
+        "weekday": "Wochentag",
+        "dayComplete": "Tag vollständig",
+        "categoryCode": "Kategorie (Code)",
+        "activityCode": "Aktivität (Code)",
+        "secondaryActivityCode": "Nebenaktivität (Code)",
+        "wellbeingCode": "Wohlbefinden (Code)",
+        "stressfulnessCode": "Stress (Code)",
+        "meaningfulnessCode": "Sinnhaftigkeit (Code)",
+        "ictAttentionCode": "Geräte-Fokus (Code)",
+        "trackedMinutes": "Erfasste Minuten (von 1440)",
+        "dayQuestionnaireAnswered": "Tagesfragen beantwortet",
+        "diaryFillTiming": "Zeitpunkt des Ausfüllens",
+        "mostPleasantActivity": "Angenehmste Aktivität",
+        "mostUnpleasantActivity": "Unangenehmste Aktivität",
+        "mostStressfulActivity": "Stressigste Aktivität",
+        "dayAppreciationCode": "Bewertung des Tages (Code)",
+        "dayAppreciation": "Bewertung des Tages",
+        "unusualDay": "Ungewöhnlicher Tag",
+        "dayType": "Art des Tages",
+        "tripType": "Reise",
+        "completeDays": "Tage vollständig",
+        "incompleteDays": "Tage unvollständig",
+        "age": "Alter",
+        "gender": "Geschlecht",
+        "maritalStatus": "Zivilstand",
+        "partnerInHousehold": "Partner:in im Haushalt",
+        "childrenInHousehold": "Kinder im Haushalt",
+        "educationLevel": "Bildung",
+        "occupationalStatus": "Berufliche Stellung",
+        "employmentStatus": "Erwerbsstatus",
+        "weeklyWorkHours": "Wochenarbeitsstunden (Arbeitspensum)",
+        "mainWorkplace": "Hauptarbeitsort",
+        "healthStatus": "Gesundheitszustand",
+        "nationalityCode": "Nationalität (ISO-Code)",
+        "nationality": "Nationalität",
+        "region": "Kanton",
+        "urbanity": "Wohnumgebung"
+      }
+    },
+    "adminStatistics": {
+      "loadFailed": "Statistiken konnten nicht geladen werden."
+    }
+  },
+  "dayQuestionnaire": {
+    "title": "Fragen zum Tag",
+    "description": "Du hast diesen Tag vollständig erfasst. Bitte beantworte noch ein paar abschliessende Fragen dazu. Falls du gerade keine Zeit hast, kannst du sie auch später über «Tagesfragen ausfüllen» beantworten.",
+    "editDescription": "Hier kannst du deine Antworten zu diesem Tag anpassen.",
+    "editButton": "Tagesfragen bearbeiten",
+    "cancelButton": "Abbrechen",
+    "close": "Schliessen",
+    "loading": "Fragebogen wird geladen…",
+    "saveButton": "Speichern",
+    "savingButton": "Wird gespeichert…",
+    "missingFieldsError": "Bitte beantworte alle Fragen.",
+    "saveError": "Fehler beim Speichern: {message}",
+    "questions": {
+      "fillTiming": "Wann hast du das Tagebuch ausgefüllt?",
+      "mostPleasant": "Was war die angenehmste Aktivität, die du heute erfasst hast?",
+      "mostUnpleasant": "Was war die unangenehmste Aktivität, die du heute erfasst hast?",
+      "mostStressful": "Was war die stressigste Aktivität, die du heute erfasst hast?",
+      "dayAppreciation": "Wie beurteilst du diesen Tag insgesamt?",
+      "unusualDay": {
+        "label": "War das ein gewöhnlicher oder ein ungewöhnlicher Tag?",
+        "ordinary": "Gewöhnlicher Tag",
+        "unusual": "Ungewöhnlicher Tag"
+      },
+      "dayType": "Was für ein Tag war das für dich?",
+      "tripType": "Warst du während des Tagebuchtages auf einer Reise (z. B. in eine andere Ortschaft, Region oder ein anderes Land)? Ausgenommen sind regelmässige Schul- oder Arbeitswege sowie Reisen von insgesamt weniger als zwei Stunden."
+    },
+    "laterButton": "Später ausfüllen",
+    "answerButton": "Tagesfragen ausfüllen"
+  },
+  "tutorial": {
+    "stepCounter": "{current} von {total}",
+    "back": "Zurück",
+    "next": "Weiter",
+    "finish": "Los geht's",
+    "close": "Tutorial schliessen",
+    "steps": {
+      "welcome": {
+        "title": "Willkommen beim Time Use Tool 👋",
+        "body": "In ein paar Schritten zeigen wir dir an einem Beispiel, wie du deine Zeit erfasst. Keine Sorge: Während des Tutorials wird nichts gespeichert – und du kannst jederzeit überspringen."
+      },
+      "dayNav": {
+        "title": "Deine Tage",
+        "body": "Hier wechselst du zwischen den Tagen deines Kurses. Der Balken zeigt, wie viele der 144 Zehn-Minuten-Felder des Tages schon ausgefüllt sind."
+      },
+      "timeGrid": {
+        "title": "Zeitraum auswählen",
+        "body": "Jede Zeile ist eine Stunde, jedes Feld zehn Minuten. Ziehe über die Felder, um einen Zeitraum auszuwählen. Im Beispiel ist 00:00–06:00 Uhr ausgewählt."
+      },
+      "primaryActivity": {
+        "title": "Haupttätigkeit wählen",
+        "body": "Wähle, was du in dieser Zeit hauptsächlich gemacht hast. Die Tätigkeiten sind nach Kategorien sortiert, du kannst aber auch direkt suchen. Im Beispiel: „Schlafen“ unter Persönliche Pflege."
+      },
+      "secondaryActivity": {
+        "title": "Nebentätigkeit – optional",
+        "body": "Hast du gleichzeitig noch etwas anderes gemacht, zum Beispiel Musik gehört? Dann wählst du das hier als Nebentätigkeit – das Feld im Raster wird dann diagonal geteilt. Wenn nicht, tippst du einfach auf „Keine Nebentätigkeit → Weiter“."
+      },
+      "device": {
+        "title": "Gerätenutzung",
+        "body": "Danach fragen wir, ob du dabei ein Gerät wie Smartphone, Tablet oder PC genutzt hast – und falls ja, welches."
+      },
+      "location": {
+        "title": "Ort",
+        "body": "Hier gibst du an, wo du warst – oder mit welchem Verkehrsmittel du unterwegs warst."
+      },
+      "social": {
+        "title": "Personen",
+        "body": "Wer war dabei? Du kannst mehrere Personen auswählen – oder angeben, dass du alleine warst."
+      },
+      "mood": {
+        "title": "Stimmung",
+        "body": "Zum Schluss: Wie hast du dich während der Aktivität gefühlt? Je nach Kurs fragen wir hier auch, wie stressig und wie bedeutsam die Aktivität für dich war. Danach wird der Eintrag gespeichert und die Felder im Raster sind gefüllt."
+      },
+      "overview": {
+        "title": "Übersicht",
+        "body": "In der Übersicht siehst du alle Tage deines Kurses – und welche noch nicht vollständig ausgefüllt sind."
+      },
+      "statistics": {
+        "title": "Statistiken",
+        "body": "Unter Statistiken siehst du in Diagrammen, wie du deine Zeit verbringst. Sobald der Admin es freigegeben hat, kannst du deine Angaben mit anderen Teilnehmern aus deinem Kurs vergleichen."
+      },
+      "settings": {
+        "title": "Einstellungen",
+        "body": "Hier stellst du Darkmode und Sprache ein. Und hier kannst du dieses Tutorial jederzeit neu starten."
+      }
+    }
+  }
+}

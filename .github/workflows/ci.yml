@@ -1,0 +1,47 @@
+# GitHub Actions: lint, build, database tests, image builds and the DSL stack rehearsal on every
+# push and pull request. The images for the DSL are built and pushed by .gitlab-ci.yml instead.
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-db-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      # the data/auth layer must lint clean; the older pages still have known lint errors (informational)
+      - name: Lint (new code, blocking)
+        run: npx eslint lib/db lib/auth lib/data lib/statistiken db
+      - name: Lint (whole project, informational)
+        run: npm run lint
+        continue-on-error: true
+
+      - run: npm run build
+
+      # same as on a developer machine: separate test database (DSL bootstrap, migrations, seed, tests)
+      - name: Database tests
+        run: npm run db:test-all
+
+      # both production images must build (pushed only by .gitlab-ci.yml in the BFH GitLab)
+      - name: Docker images
+        run: |
+          docker build -t time-use-tool:ci .
+          docker build -t time-use-tool-db:ci db/bootstrap
+
+      # the DSL hand-over file, started as written (local images, dummy secrets)
+      - name: DSL stack rehearsal
+        run: npm run test:dsl-stack   # reuses the layers built above

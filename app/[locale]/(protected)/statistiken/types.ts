@@ -1,0 +1,134 @@
+// Shared data shapes of the Statistiken page (page.tsx builds them, the tabs and the PDF export
+// render them).
+
+// --- Drill-down table types ---
+
+// One row in the category-level drill-down table
+export type CategoryRow = {
+  categoryId: number;
+  name: string;
+  totalMinutes: number; // sum of all time entries in this category
+  percentOfTotal: number; // share of all tracked time (0–100)
+  isExpanded: boolean; // controls accordion open/close
+  subcategories: SubcategoryRow[];
+};
+
+// One row in the subcategory-level drill-down (shown when category is expanded)
+export type SubcategoryRow = {
+  subcategoryId: number;
+  name: string;
+  totalMinutes: number;
+  percentOfTotal: number; // share of all tracked time (not just the parent category)
+  isExpanded: boolean;
+  activities: ActivityRow[];
+};
+
+// One row in the activity-level drill-down (shown when subcategory is expanded)
+export type ActivityRow = {
+  activityId: number;
+  name: string;
+  totalMinutes: number;
+  percentOfTotal: number;
+  meta?: ActivityMetaStats;
+};
+
+// Context minutes of one activity (meta columns of the drill-down table)
+export type ActivityMetaStats = {
+  withDevicesMinutes: number;
+  withoutDevicesMinutes: number;
+  withPeopleMinutes: number;
+  aloneMinutes: number;
+  atHomeMinutes: number;
+  elsewhereMinutes: number;
+  satisfactionWeightedSum: number;
+  satisfactionWeight: number;
+  avgSatisfactionLabel: string;
+};
+
+export type MetaAggregateItem = {
+  name: string;
+  // Language-neutral lookup-table code, used to pick a stable icon regardless
+  // of display locale (see ActivitySelector.tsx's *_VISUAL_BY_CODE maps).
+  // Without a code the icon lookup falls back to the default icon.
+  code?: string;
+  minutes: number;
+};
+
+// Top entries per context dimension for the selected period, plus the overall wellbeing label
+export type MetaAggregates = {
+  devices: MetaAggregateItem[];
+  social: MetaAggregateItem[];
+  locations: MetaAggregateItem[];
+  avgSatisfactionLabel: string;
+};
+
+// --- Bar chart types ---
+
+// One bar in the daily stacked bar chart — one entry per course date
+export type DayBarData = {
+  date: string; // ISO date "YYYY-MM-DD"
+  isSubmitted: boolean; // false → render as a grey placeholder bar
+  // Dynamic keys: one per category name (e.g. "Schlaf": 420)
+  // Values are minutes spent in that category on this day
+  [categoryName: string]: number | string | boolean;
+};
+
+// --- Course comparison types ---
+
+// The three comparison topics available in the Kursvergleich tab
+export type ComparisonTopicKey = "schlaf" | "sport" | "smartphone";
+
+// Aggregated comparison data for one topic
+export type ComparisonTopic = {
+  key: ComparisonTopicKey;
+  // Already translated by page.tsx; shown as card title and in the PDF report
+  label: string;
+  unit: string;
+  // All participants' average hours/day (anonymous, used for distribution)
+  allValues: number[];
+  // The current user's average hours/day for this topic
+  userValue: number;
+};
+
+// Per-category comparison: the user's Ø h/Tag vs. all qualifying participants
+export type CategoryComparison = {
+  categoryId: number;
+  name: string;
+  allValues: number[]; // anonymous Ø h/Tag of every qualifying participant
+  userValue: number; // the current user's Ø h/Tag
+};
+
+// Generic "you vs. course" metric, rendered as paired bars in the Kursvergleich
+export type ComparisonMetric = {
+  // Label/description are resolved from messages via this key (translatable)
+  key: "itDevice" | "social" | "location" | "wellbeing";
+  unit: "h/Tag" | "%" | "Punkte";
+  scaleMax?: number; // fixed bar scale (100 for %, max rank for wellbeing); omit → max of values
+  allValues: number[]; // anonymous per-participant values
+  userValue: number;
+};
+
+// Split of the viewer's / the course's time into two shares, e.g. with / without device
+export type ComparisonPairPercent = {
+  leftPercent: number;
+  rightPercent: number;
+};
+
+export type ComparisonMetaStats = {
+  itDevice: {
+    user: ComparisonPairPercent | null;
+    course: ComparisonPairPercent | null;
+  };
+  social: {
+    user: ComparisonPairPercent | null;
+    course: ComparisonPairPercent | null;
+  };
+  location: {
+    user: ComparisonPairPercent | null;
+    course: ComparisonPairPercent | null;
+  };
+  wellbeing: {
+    userLabel: string;
+    courseLabel: string;
+  };
+};

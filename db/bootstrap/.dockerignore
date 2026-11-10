@@ -1,0 +1,4 @@
+# build context of the database image: only these two files
+*
+!bootstrap.sql
+!stack-init.sh

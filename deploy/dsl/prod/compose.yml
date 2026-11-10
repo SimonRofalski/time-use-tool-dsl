@@ -1,0 +1,119 @@
+# Time Use Tool, PRODUCTION environment. Proposal for the DSL repository "Infrastructure", in the
+# same format as the other apps there: images from the BFH GitLab registry (built by .gitlab-ci.yml),
+# external network "web" for Traefik, secrets from the vault as {{ secrets.… }}.
+# Explanations: DEPLOY.md. The test environment (deploy/dsl/test/compose.yml) differs only in the
+# values marked "differs in test".
+#
+# Three services:
+#   tut_db       PostgreSQL 17 of this app (own instance, data in the volume tut_pgdata). On the
+#                first start with an empty volume it creates the database tut_prod and the three logins.
+#   tut_migrate  short job before every start: applies new database migrations, then exits.
+#                Only this job gets the owner login.
+#   tut_app      the web app (UI and backend in one Next.js container), port 3000, reached by Traefik
+#                through the network "web".
+# Secrets: letters and digits only, at least 16 characters (e.g. openssl rand -hex 32), because the
+# database passwords are part of URLs. The three login passwords appear twice (tut_db creates the
+# logins with them, tut_migrate / tut_app log in with them): same vault entry, so always the same value.
+# Changing a login password later is NOT done here (tut_db only uses them on the very first start),
+# see DEPLOY.md.
+
+# fixed project name: decides the names of the containers and of the volume (time-use-tool-prod_tut_pgdata),
+# independent of the directory this file is in, so test and production can never share a volume
+name: time-use-tool-prod
+
+networks:
+  web:
+    external: true
+
+volumes:
+  tut_pgdata:
+
+services:
+  tut_db:
+    image: registry.gitlab.ti.bfh.ch/digital-sustainability-lab/time-use-tool/db:v1.0.0   # differs in test
+    networks:
+      - default                       # NOT in "web": only reachable by the two services below
+    environment:
+      - POSTGRES_PASSWORD={{ secrets.prod.tut.db_superuser_password }}
+      - TUT_ENV=prod                  # differs in test (stage): database tut_prod, logins tut_prod_*
+      - TUT_OWNER_PASSWORD={{ secrets.prod.tut.db_owner_password }}
+      - TUT_APP_PASSWORD={{ secrets.prod.tut.db_app_password }}
+      - TUT_SERVICE_PASSWORD={{ secrets.prod.tut.db_service_password }}
+    volumes:
+      - tut_pgdata:/var/lib/postgresql/data
+    # the image's healthcheck is green once the server accepts connections and the bootstrap is complete
+    user: "999:999"                   # the image's postgres user, no root step at start
+    read_only: true
+    tmpfs:
+      - /var/run/postgresql:uid=999,gid=999,mode=2775
+      - /tmp
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    shm_size: 256mb
+    stop_grace_period: 60s            # clean shutdown instead of SIGKILL after 10 s
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "5" }
+
+  tut_migrate:
+    image: registry.gitlab.ti.bfh.ch/digital-sustainability-lab/time-use-tool/app:v1.0.0  # differs in test
+    command: ["node", "db/scripts/migrate.mjs"]
+    networks:
+      - default
+    depends_on:
+      tut_db:
+        condition: service_healthy
+    environment:
+      - DATABASE_OWNER_URL=postgresql://tut_prod_owner:{{ secrets.prod.tut.db_owner_password }}@tut_db:5432/tut_prod
+      - DATABASE_SSLMODE=disable      # the connection stays inside this stack's own network
+    restart: "no"
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+
+  tut_app:
+    image: registry.gitlab.ti.bfh.ch/digital-sustainability-lab/time-use-tool/app:v1.0.0  # differs in test
+    networks:
+      - web
+      - default
+    depends_on:
+      tut_migrate:
+        condition: service_completed_successfully
+    environment:
+      # DATABASE
+      - DATABASE_URL=postgresql://tut_prod_app:{{ secrets.prod.tut.db_app_password }}@tut_db:5432/tut_prod
+      - DATABASE_SERVICE_URL=postgresql://tut_prod_service:{{ secrets.prod.tut.db_service_password }}@tut_db:5432/tut_prod
+      - DATABASE_SSLMODE=disable
+      # APP: public address, must be the same as in the Traefik rule and the SWITCH redirect
+      - APP_ORIGIN=https://time-use-tool.digisus-lab.ch                     # differs in test
+      - RESET_DECOY_SECRET={{ secrets.prod.tut.reset_decoy_secret }}
+      # OIDC (SWITCH edu-ID). Without a SWITCH registration, leave CLIENT_ID and CLIENT_SECRET empty:
+      # the edu-ID button then says "currently unavailable", password login works.
+      - SWITCH_OIDC_ISSUER_URL=https://login.eduid.ch/                      # differs in test
+      - SWITCH_OIDC_CLIENT_ID={{ secrets.prod.tut.switch_oidc_client_id }}
+      - SWITCH_OIDC_CLIENT_SECRET={{ secrets.prod.tut.switch_oidc_client_secret }}
+      - SWITCH_OIDC_REDIRECT_URI=https://time-use-tool.digisus-lab.ch/api/auth/switch/callback  # differs in test
+    labels:
+      # Traefik (Docker provider). Adjust the entrypoint and certresolver names to your Traefik setup.
+      - traefik.enable=true
+      - traefik.docker.network=web    # the container is in two networks; Traefik must use "web"
+      - traefik.http.routers.tut-prod.rule=Host(`time-use-tool.digisus-lab.ch`)   # differs in test
+      - traefik.http.routers.tut-prod.entrypoints=websecure
+      - traefik.http.routers.tut-prod.tls=true
+      - traefik.http.routers.tut-prod.tls.certresolver=letsencrypt
+      - traefik.http.routers.tut-prod.service=tut-prod
+      - traefik.http.services.tut-prod.loadbalancer.server.port=3000
+      # HSTS for two years (63072000 s); Traefik adds no HSTS header by default
+      - traefik.http.middlewares.tut-prod-hsts.headers.stsSeconds=63072000
+      - traefik.http.routers.tut-prod.middlewares=tut-prod-hsts
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /app/.next/cache:uid=1000,gid=1000
+    cap_drop: [ALL]
+    security_opt: ["no-new-privileges:true"]
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options: { max-size: "10m", max-file: "5" }

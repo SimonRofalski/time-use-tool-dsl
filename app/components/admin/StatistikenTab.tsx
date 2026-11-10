@@ -1,0 +1,521 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+  PieChart,
+  Pie,
+  Legend,
+  CartesianGrid,
+  LabelList,
+} from "recharts";
+import { useLocale, useTranslations } from "next-intl";
+import type { Locale } from "@/i18n/routing";
+import { CATEGORY_COLORS } from "@/app/[locale]/(protected)/zeiterfassung/types";
+import type {
+  ActivityData,
+  AdminStatistics,
+  CategoryData,
+  CourseProgressData,
+  KpiData,
+  SatisfactionData,
+  TrendPoint,
+} from "@/lib/admin/statistics-types";
+
+// Admin tab "Statistiken": usage KPIs, activity trend, course progress, top activities,
+// category split and well-being, charted with recharts.
+// Privacy: all values are aggregates over all (not excluded) users, computed server-side in
+// /api/admin/statistics (lib/admin/statistics.ts). The browser never receives single time entries.
+
+// --- Helpers ---
+
+/** Same category palette as the Zeiterfassung page; ids <= 0 (no category) are grey. */
+function getCategoryColorById(categoryId: number): string {
+  if (categoryId <= 0) return "#94A3B8";
+  return CATEGORY_COLORS[(categoryId - 1) % CATEGORY_COLORS.length];
+}
+
+/** Colour scale for the satisfaction levels, from red (first) to green (last). */
+function getSatisfactionColor(index: number, total: number): string {
+  if (total <= 1) return "#f59e0b";
+  const t = index / (total - 1);
+  const hue = Math.round(0 + t * 120); // red -> green
+  return `hsl(${hue} 75% 48%)`;
+}
+
+// --- Custom tooltips ---
+
+function TrendTooltip({ active, payload, label }: any) {
+  const t = useTranslations("adminStatistiken");
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-lg text-xs dark:border-slate-700 dark:bg-slate-800">
+      <p className="font-semibold text-slate-700 dark:text-slate-200">
+        {label}
+      </p>
+      <p className="mt-1 text-blue-600 dark:text-blue-400">
+        {t("activeUsersTrend.tooltipActiveUsers", { count: payload[0].value })}
+      </p>
+    </div>
+  );
+}
+
+function CategoryTooltip({ active, payload }: any) {
+  if (!active || !payload?.length) return null;
+  const { name, value } = payload[0];
+  const hours = Math.floor(value / 60);
+  const mins = value % 60;
+  const label = hours > 0 ? `${hours}h ${mins}m` : `${mins}m`;
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-lg text-xs dark:border-slate-700 dark:bg-slate-800">
+      <p className="font-semibold text-slate-700 dark:text-slate-200">{name}</p>
+      <p className="mt-1 text-slate-600 dark:text-slate-300">{label}</p>
+    </div>
+  );
+}
+
+function CourseTooltip({ active, payload, label }: any) {
+  if (!active || !payload?.length) return null;
+  return (
+    <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 shadow-lg text-xs dark:border-slate-700 dark:bg-slate-800">
+      <p className="font-semibold text-slate-700 dark:text-slate-200 mb-1">
+        {label}
+      </p>
+      {payload.map((p: any) => (
+        <p key={p.dataKey} style={{ color: p.fill }} className="mt-0.5">
+          {p.name}: {p.value}
+        </p>
+      ))}
+    </div>
+  );
+}
+
+// --- Chart card wrapper ---
+
+function ChartCard({
+  title,
+  children,
+}: {
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+      <p className="mb-4 text-sm font-semibold text-slate-700 dark:text-slate-200">
+        {title}
+      </p>
+      {children}
+    </div>
+  );
+}
+
+// --- Main component ---
+
+export default function StatistikenTab() {
+  const t = useTranslations("adminStatistiken");
+  const locale = useLocale() as Locale;
+
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const [kpis, setKpis] = useState<KpiData | null>(null);
+  const [trendData, setTrendData] = useState<TrendPoint[]>([]);
+  const [courseProgress, setCourseProgress] = useState<CourseProgressData[]>(
+    [],
+  );
+  const [topActivities, setTopActivities] = useState<ActivityData[]>([]);
+  const [categoryData, setCategoryData] = useState<CategoryData[]>([]);
+  const [satisfactionData, setSatisfactionData] = useState<SatisfactionData[]>(
+    [],
+  );
+
+  useEffect(() => {
+    void loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locale]);
+
+  async function loadData() {
+    setIsLoading(true);
+    setError("");
+
+    try {
+      // Aggregates are computed server-side (service connection, admin guard);
+      // the locale selects German/English lookup names and date labels.
+      const res = await fetch(`/api/admin/statistics?locale=${locale}`, {
+        cache: "no-store",
+      });
+      if (!res.ok) {
+        setError(t("loadError"));
+        setIsLoading(false);
+        return;
+      }
+      const data = (await res.json()) as AdminStatistics;
+      setKpis(data.kpis);
+      setTrendData(data.trendData);
+      setCourseProgress(data.courseProgress);
+      setTopActivities(data.topActivities);
+      setCategoryData(data.categoryData);
+      setSatisfactionData(data.satisfactionData);
+    } catch {
+      setError(t("loadError"));
+    }
+
+    setIsLoading(false);
+  }
+
+  // --- Render ---
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-24">
+        <p className="text-sm text-slate-500">{t("loading")}</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+        <p className="text-sm text-red-600">{error}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* --- KPI cards --- */}
+      {kpis && (
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+              {t("kpis.totalUsers")}
+            </p>
+            <p className="mt-2 text-3xl font-bold text-slate-800 dark:text-slate-100">
+              {kpis.totalUsers}
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+              {t("kpis.courses")}
+            </p>
+            <p className="mt-2 text-3xl font-bold text-slate-800 dark:text-slate-100">
+              {kpis.activeCourses + kpis.closedCourses}
+            </p>
+            <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">
+              {t("kpis.coursesSubtitle", {
+                active: kpis.activeCourses,
+                closed: kpis.closedCourses,
+              })}
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+              {t("kpis.newEntries7d")}
+            </p>
+            <p className="mt-2 text-3xl font-bold text-slate-800 dark:text-slate-100">
+              {kpis.newEntriesLast7Days}
+            </p>
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-700 dark:bg-slate-900">
+            <p className="text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
+              {t("kpis.totalEntries")}
+            </p>
+            <p className="mt-2 text-3xl font-bold text-slate-800 dark:text-slate-100">
+              {kpis.totalEntries.toLocaleString(
+                locale === "en" ? "en-US" : "de-DE",
+              )}
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* --- Row 2: Trend + Course progress --- */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Active users trend */}
+        <ChartCard title={t("activeUsersTrend.title")}>
+          {trendData.every((d) => d.users === 0) ? (
+            <p className="py-10 text-center text-sm text-slate-400">
+              {t("activeUsersTrend.noActivity")}
+            </p>
+          ) : (
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart
+                data={trendData}
+                margin={{ top: 4, right: 8, left: -20, bottom: 0 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#f1f5f9"
+                  vertical={false}
+                />
+                <XAxis
+                  dataKey="date"
+                  tick={{ fontSize: 10, fill: "#94a3b8" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  allowDecimals={false}
+                  tick={{ fontSize: 10, fill: "#94a3b8" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip
+                  content={<TrendTooltip />}
+                  cursor={{ fill: "#f8fafc" }}
+                />
+                <Bar
+                  dataKey="users"
+                  fill={CATEGORY_COLORS[0]}
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={40}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </ChartCard>
+
+        {/* Course progress */}
+        <ChartCard title={t("courseProgress.title")}>
+          {courseProgress.length === 0 ? (
+            <p className="py-10 text-center text-sm text-slate-400">
+              {t("courseProgress.noCourseData")}
+            </p>
+          ) : (
+            <ResponsiveContainer
+              width="100%"
+              height={Math.max(220, courseProgress.length * 52)}
+            >
+              <BarChart
+                data={courseProgress}
+                layout="vertical"
+                margin={{ top: 4, right: 8, left: 8, bottom: 0 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#f1f5f9"
+                  horizontal={false}
+                />
+                <XAxis
+                  type="number"
+                  tick={{ fontSize: 10, fill: "#94a3b8" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  width={120}
+                  tick={{ fontSize: 11, fill: "#64748b" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip
+                  content={<CourseTooltip />}
+                  cursor={{ fill: "#f8fafc" }}
+                />
+                <Legend
+                  iconType="circle"
+                  iconSize={8}
+                  wrapperStyle={{ fontSize: 11 }}
+                  formatter={(value) =>
+                    value === "open"
+                      ? t("courseProgress.legendOpen")
+                      : value === "inProgress"
+                        ? t("courseProgress.legendInProgress")
+                        : t("courseProgress.legendDone")
+                  }
+                />
+                <Bar
+                  dataKey="done"
+                  name="done"
+                  stackId="a"
+                  fill="#22c55e"
+                  radius={[0, 0, 0, 0]}
+                />
+                <Bar
+                  dataKey="inProgress"
+                  name="inProgress"
+                  stackId="a"
+                  fill="#f59e0b"
+                />
+                <Bar
+                  dataKey="open"
+                  name="open"
+                  stackId="a"
+                  fill="#e2e8f0"
+                  radius={[0, 4, 4, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </ChartCard>
+      </div>
+
+      {/* --- Row 3: Top activities + Category donut --- */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        {/* Top 7 activities */}
+        <ChartCard title={t("topActivities.title")}>
+          {topActivities.length === 0 ? (
+            <p className="py-10 text-center text-sm text-slate-400">
+              {t("topActivities.noEntries")}
+            </p>
+          ) : (
+            <ResponsiveContainer width="100%" height={260}>
+              <BarChart
+                data={topActivities}
+                layout="vertical"
+                margin={{ top: 4, right: 90, left: 8, bottom: 0 }}
+              >
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  stroke="#f1f5f9"
+                  horizontal={false}
+                />
+                <XAxis
+                  type="number"
+                  tick={{ fontSize: 10, fill: "#94a3b8" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  type="category"
+                  dataKey="name"
+                  width={150}
+                  tick={{ fontSize: 11, fill: "#64748b" }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <Tooltip
+                  formatter={(value) => [
+                    t("topActivities.tooltipEntries", { count: value as number }),
+                    t("topActivities.tooltipCount"),
+                  ]}
+                  contentStyle={{
+                    fontSize: 12,
+                    borderRadius: 8,
+                    border: "1px solid #e2e8f0",
+                  }}
+                />
+                <Bar dataKey="count" radius={[0, 4, 4, 0]} maxBarSize={24}>
+                  {topActivities.map((activity, index) => (
+                    <Cell
+                      key={index}
+                      fill={getCategoryColorById(activity.categoryId)}
+                    />
+                  ))}
+                  <LabelList
+                    dataKey="label"
+                    position="right"
+                    style={{ fontSize: 10, fill: "#64748b" }}
+                  />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          )}
+        </ChartCard>
+
+        {/* Activity categories (donut) */}
+        <ChartCard title={t("categoryDistribution.title")}>
+          {categoryData.length === 0 ? (
+            <p className="py-10 text-center text-sm text-slate-400">
+              {t("categoryDistribution.noEntries")}
+            </p>
+          ) : (
+            <ResponsiveContainer width="100%" height={260}>
+              <PieChart>
+                <Pie
+                  data={categoryData}
+                  dataKey="minutes"
+                  nameKey="name"
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={95}
+                  paddingAngle={2}
+                >
+                  {categoryData.map((entry, index) => (
+                    <Cell key={index} fill={getCategoryColorById(entry.categoryId)} />
+                  ))}
+                </Pie>
+                <Tooltip content={<CategoryTooltip />} />
+                <Legend
+                  iconType="circle"
+                  iconSize={8}
+                  wrapperStyle={{ fontSize: 11 }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          )}
+        </ChartCard>
+      </div>
+
+      {/* --- Row 4: Well-being --- */}
+      <ChartCard title={t("wellbeing.title")}>
+        {satisfactionData.length === 0 ? (
+          <p className="py-10 text-center text-sm text-slate-400">
+            {t("wellbeing.noEntries")}
+          </p>
+        ) : (
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart
+              data={satisfactionData}
+              margin={{ top: 24, right: 8, left: -20, bottom: 0 }}
+            >
+              <CartesianGrid
+                strokeDasharray="3 3"
+                stroke="#f1f5f9"
+                vertical={false}
+              />
+              <XAxis
+                dataKey="name"
+                tick={{ fontSize: 11, fill: "#64748b" }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                allowDecimals={false}
+                tick={{ fontSize: 10, fill: "#94a3b8" }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <Tooltip
+                formatter={(value) => [
+                  t("topActivities.tooltipEntries", { count: value as number }),
+                  t("topActivities.tooltipCount"),
+                ]}
+                contentStyle={{
+                  fontSize: 12,
+                  borderRadius: 8,
+                  border: "1px solid #e2e8f0",
+                }}
+              />
+              <Bar dataKey="count" radius={[4, 4, 0, 0]} maxBarSize={60}>
+                {satisfactionData.map((_, index) => (
+                  <Cell
+                    key={index}
+                    fill={getSatisfactionColor(index, satisfactionData.length)}
+                  />
+                ))}
+                <LabelList
+                  dataKey="label"
+                  position="top"
+                  style={{ fontSize: 10, fill: "#64748b" }}
+                />
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        )}
+      </ChartCard>
+    </div>
+  );
+}

@@ -1,0 +1,444 @@
+"use client";
+// Day questionnaire modal of the Zeiterfassung page: eight questions about a whole
+// recorded day (fill timing, most pleasant/unpleasant/stressful activity, rating,
+// unusual day, day type, trip type). Opened by page.tsx; lookups and earlier answers
+// are loaded and saved via the Server Actions in ./actions.ts.
+
+import { useEffect, useState } from "react";
+import { useLocale, useTranslations } from "next-intl";
+import { Check, Loader2, Save, X } from "lucide-react";
+import { loadDayQuestionnaireData, saveDayQuestionnaire } from "./actions";
+import type { Locale } from "@/i18n/routing";
+import { getLocalizedName } from "@/lib/i18n/localized-name";
+import type { Activity, TimeEntryRecord } from "./types";
+
+// --- Lookup row shapes (specific to this feature, not shared elsewhere) ---
+
+type LookupRow = {
+  code: string;
+  name: string;
+  name_en: string;
+};
+
+type DiaryFillTiming = LookupRow & { diary_fill_timing_id: number };
+type DayTypeContext = LookupRow & { day_type_context_id: number };
+type TripType = LookupRow & { trip_type_id: number };
+type DayAppreciation = LookupRow & { day_appreciation_id: number };
+
+type DayQuestionnaireLookups = {
+  fillTimings: DiaryFillTiming[];
+  dayTypes: DayTypeContext[];
+  tripTypes: TripType[];
+  dayAppreciations: DayAppreciation[];
+};
+
+type FormState = {
+  diaryFillTimingId: number | null;
+  mostPleasantActivityId: number | null;
+  mostUnpleasantActivityId: number | null;
+  mostStressfulActivityId: number | null;
+  dayAppreciationId: number | null;
+  isUnusualDay: boolean | null;
+  dayTypeContextId: number | null;
+  tripTypeId: number | null;
+};
+
+const EMPTY_FORM: FormState = {
+  diaryFillTimingId: null,
+  mostPleasantActivityId: null,
+  mostUnpleasantActivityId: null,
+  mostStressfulActivityId: null,
+  dayAppreciationId: null,
+  isUnusualDay: null,
+  dayTypeContextId: null,
+  tripTypeId: null,
+};
+
+type DayQuestionnaireModalProps = {
+  dayId: number;
+  existingEntries: TimeEntryRecord[];
+  activities: Activity[];
+  onSaved: () => void;
+  onClose: () => void;
+  // "prompt" = shown automatically right after the day was completed (can be
+  // postponed with the "later" button); "edit" = opened by the user themselves
+  mode: "prompt" | "edit";
+};
+
+// A small reusable option-card row, mirroring ProfileDetailsForm's visual style
+function OptionCards<T extends string | number>({
+  options,
+  selectedValue,
+  onSelect,
+}: {
+  options: { value: T; label: string }[];
+  selectedValue: T | null;
+  onSelect: (value: T) => void;
+}) {
+  return (
+    <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+      {options.map((option) => {
+        const selected = selectedValue === option.value;
+        return (
+          <button
+            key={String(option.value)}
+            type="button"
+            onClick={() => onSelect(option.value)}
+            className={`flex items-center justify-between rounded-xl border-2 px-4 py-3 text-left text-sm transition-all ${
+              selected
+                ? "border-blue-500 bg-blue-50 text-blue-700 dark:border-blue-400 dark:bg-blue-500/10 dark:text-blue-300"
+                : "border-slate-200 bg-white text-slate-700 hover:border-slate-300 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-200 dark:hover:border-slate-600 dark:hover:bg-slate-700"
+            }`}
+          >
+            <span>{option.label}</span>
+            {selected && <Check size={18} className="shrink-0 text-blue-600" />}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// One question block; turns amber when validation is shown and it is still unanswered
+function QuestionPanel({
+  label,
+  isAnswered,
+  children,
+}: {
+  label: string;
+  isAnswered: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <div
+      className={`rounded-2xl border p-4 ${
+        isAnswered
+          ? "border-slate-200 bg-slate-50 dark:border-slate-800 dark:bg-slate-950/40"
+          : "border-amber-200 bg-amber-50/60 dark:border-amber-500/30 dark:bg-amber-500/10"
+      }`}
+    >
+      <label className="mb-3 block text-sm font-semibold text-slate-800 dark:text-slate-100">
+        {label}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+export default function DayQuestionnaireModal({
+  dayId,
+  existingEntries,
+  activities,
+  onSaved,
+  onClose,
+  mode,
+}: DayQuestionnaireModalProps) {
+  const isEditMode = mode === "edit";
+  const t = useTranslations("dayQuestionnaire");
+  const locale = useLocale() as Locale;
+  const [lookups, setLookups] = useState<DayQuestionnaireLookups | null>(null);
+  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [showValidation, setShowValidation] = useState(false);
+
+  // --- Data loading ---
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadLookups() {
+      // lookup tables + earlier answers for this day (prefilled for editing), one server call
+      const result = await loadDayQuestionnaireData(dayId);
+
+      if (cancelled) return;
+      const existing = result?.existing as
+        | {
+            diary_fill_timing_id: number;
+            most_pleasant_activity_id: number;
+            most_unpleasant_activity_id: number;
+            most_stressful_activity_id: number;
+            day_appreciation_id: number;
+            is_unusual_day: boolean;
+            day_type_context_id: number;
+            trip_type_id: number;
+          }
+        | null
+        | undefined;
+      if (existing) {
+        setForm({
+          diaryFillTimingId: existing.diary_fill_timing_id,
+          mostPleasantActivityId: existing.most_pleasant_activity_id,
+          mostUnpleasantActivityId: existing.most_unpleasant_activity_id,
+          mostStressfulActivityId: existing.most_stressful_activity_id,
+          dayAppreciationId: existing.day_appreciation_id,
+          isUnusualDay: existing.is_unusual_day,
+          dayTypeContextId: existing.day_type_context_id,
+          tripTypeId: existing.trip_type_id,
+        });
+      }
+      setLookups({
+        fillTimings: (result?.fillTimings ?? []) as DayQuestionnaireLookups["fillTimings"],
+        dayTypes: (result?.dayTypes ?? []) as DayQuestionnaireLookups["dayTypes"],
+        tripTypes: (result?.tripTypes ?? []) as DayQuestionnaireLookups["tripTypes"],
+        dayAppreciations: (result?.dayAppreciations ?? []) as DayQuestionnaireLookups["dayAppreciations"],
+      });
+    }
+
+    void loadLookups();
+    return () => {
+      cancelled = true;
+    };
+  }, [dayId]);
+
+  // Distinct primary activities logged that day (secondary activities excluded),
+  // in the order they first appear
+  const dayActivityIds = [
+    ...new Set(existingEntries.map((entry) => entry.primary_activity_id)),
+  ];
+  const dayActivityOptions = dayActivityIds
+    .map((activityId) => activities.find((a) => a.activity_id === activityId))
+    .filter((activity): activity is Activity => !!activity)
+    .map((activity) => ({
+      value: activity.activity_id,
+      label: getLocalizedName(activity, locale),
+    }));
+
+  function updateField<K extends keyof FormState>(field: K, value: FormState[K]) {
+    setForm((previous) => ({ ...previous, [field]: value }));
+  }
+
+  // A prefilled activity may no longer be logged that day (entries edited
+  // since); then it counts as unanswered instead of being saved again
+  const dayActivityPick = (activityId: number | null) =>
+    activityId !== null && dayActivityIds.includes(activityId)
+      ? activityId
+      : null;
+  const mostPleasantActivityId = dayActivityPick(form.mostPleasantActivityId);
+  const mostUnpleasantActivityId = dayActivityPick(
+    form.mostUnpleasantActivityId,
+  );
+  const mostStressfulActivityId = dayActivityPick(form.mostStressfulActivityId);
+
+  const isComplete =
+    form.diaryFillTimingId !== null &&
+    mostPleasantActivityId !== null &&
+    mostUnpleasantActivityId !== null &&
+    mostStressfulActivityId !== null &&
+    form.dayAppreciationId !== null &&
+    form.isUnusualDay !== null &&
+    form.dayTypeContextId !== null &&
+    form.tripTypeId !== null;
+
+  // --- Submit: all eight answers are mandatory ---
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!isComplete) {
+      setShowValidation(true);
+      return;
+    }
+
+    setSaving(true);
+    setSaveError(null);
+
+    // isComplete above guarantees every field is set
+    const { error } = await saveDayQuestionnaire({
+      day_id: dayId,
+      diary_fill_timing_id: form.diaryFillTimingId!,
+      most_pleasant_activity_id: mostPleasantActivityId!,
+      most_unpleasant_activity_id: mostUnpleasantActivityId!,
+      most_stressful_activity_id: mostStressfulActivityId!,
+      day_appreciation_id: form.dayAppreciationId!,
+      is_unusual_day: form.isUnusualDay!,
+      day_type_context_id: form.dayTypeContextId!,
+      trip_type_id: form.tripTypeId!,
+    });
+
+    if (error) {
+      setSaveError(t("saveError", { message: error }));
+      setSaving(false);
+      return;
+    }
+
+    onSaved();
+  }
+
+  // --- Render ---
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-sm">
+      <div className="relative z-10 max-h-[90vh] w-full max-w-3xl overflow-y-auto scrollbar-thin rounded-3xl border border-slate-200 bg-white p-6 shadow-2xl transition-colors dark:border-slate-800 dark:bg-slate-900">
+        <div className="flex items-start justify-between gap-3">
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+            {t("title")}
+          </h2>
+          <button
+            type="button"
+            aria-label={t("close")}
+            onClick={onClose}
+            className="rounded-full p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-slate-800 dark:hover:text-slate-200"
+          >
+            <X size={18} />
+          </button>
+        </div>
+        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+          {isEditMode ? t("editDescription") : t("description")}
+        </p>
+
+        {!lookups ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 size={28} className="animate-spin text-blue-600" />
+            <span className="ml-3 text-slate-500 dark:text-slate-400">
+              {t("loading")}
+            </span>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+            <QuestionPanel
+              label={t("questions.fillTiming")}
+              isAnswered={!showValidation || form.diaryFillTimingId !== null}
+            >
+              <OptionCards
+                options={lookups.fillTimings.map((option) => ({
+                  value: option.diary_fill_timing_id,
+                  label: getLocalizedName(option, locale),
+                }))}
+                selectedValue={form.diaryFillTimingId}
+                onSelect={(value) => updateField("diaryFillTimingId", value)}
+              />
+            </QuestionPanel>
+
+            <QuestionPanel
+              label={t("questions.mostPleasant")}
+              isAnswered={!showValidation || mostPleasantActivityId !== null}
+            >
+              <OptionCards
+                options={dayActivityOptions}
+                selectedValue={mostPleasantActivityId}
+                onSelect={(value) => updateField("mostPleasantActivityId", value)}
+              />
+            </QuestionPanel>
+
+            <QuestionPanel
+              label={t("questions.mostUnpleasant")}
+              isAnswered={!showValidation || mostUnpleasantActivityId !== null}
+            >
+              <OptionCards
+                options={dayActivityOptions}
+                selectedValue={mostUnpleasantActivityId}
+                onSelect={(value) => updateField("mostUnpleasantActivityId", value)}
+              />
+            </QuestionPanel>
+
+            <QuestionPanel
+              label={t("questions.mostStressful")}
+              isAnswered={!showValidation || mostStressfulActivityId !== null}
+            >
+              <OptionCards
+                options={dayActivityOptions}
+                selectedValue={mostStressfulActivityId}
+                onSelect={(value) => updateField("mostStressfulActivityId", value)}
+              />
+            </QuestionPanel>
+
+            <QuestionPanel
+              label={t("questions.dayAppreciation")}
+              isAnswered={!showValidation || form.dayAppreciationId !== null}
+            >
+              <OptionCards
+                options={lookups.dayAppreciations.map((option) => ({
+                  value: option.day_appreciation_id,
+                  label: getLocalizedName(option, locale),
+                }))}
+                selectedValue={form.dayAppreciationId}
+                onSelect={(value) => updateField("dayAppreciationId", value)}
+              />
+            </QuestionPanel>
+
+            <QuestionPanel
+              label={t("questions.unusualDay.label")}
+              isAnswered={!showValidation || form.isUnusualDay !== null}
+            >
+              <OptionCards
+                options={[
+                  { value: "ordinary", label: t("questions.unusualDay.ordinary") },
+                  { value: "unusual", label: t("questions.unusualDay.unusual") },
+                ]}
+                selectedValue={
+                  form.isUnusualDay === null
+                    ? null
+                    : form.isUnusualDay
+                      ? "unusual"
+                      : "ordinary"
+                }
+                onSelect={(value) =>
+                  updateField("isUnusualDay", value === "unusual")
+                }
+              />
+            </QuestionPanel>
+
+            <QuestionPanel
+              label={t("questions.dayType")}
+              isAnswered={!showValidation || form.dayTypeContextId !== null}
+            >
+              <OptionCards
+                options={lookups.dayTypes.map((option) => ({
+                  value: option.day_type_context_id,
+                  label: getLocalizedName(option, locale),
+                }))}
+                selectedValue={form.dayTypeContextId}
+                onSelect={(value) => updateField("dayTypeContextId", value)}
+              />
+            </QuestionPanel>
+
+            <QuestionPanel
+              label={t("questions.tripType")}
+              isAnswered={!showValidation || form.tripTypeId !== null}
+            >
+              <OptionCards
+                options={lookups.tripTypes.map((option) => ({
+                  value: option.trip_type_id,
+                  label: getLocalizedName(option, locale),
+                }))}
+                selectedValue={form.tripTypeId}
+                onSelect={(value) => updateField("tripTypeId", value)}
+              />
+            </QuestionPanel>
+
+            {showValidation && !isComplete && (
+              <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
+                {t("missingFieldsError")}
+              </p>
+            )}
+            {saveError && (
+              <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm font-medium text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-300">
+                {saveError}
+              </p>
+            )}
+
+            <div className="sticky bottom-0 -mx-6 flex gap-2 border-t border-slate-200 bg-white/95 px-6 py-4 backdrop-blur dark:border-slate-800 dark:bg-slate-900/95">
+              <button
+                type="button"
+                onClick={onClose}
+                disabled={saving}
+                className="rounded-xl border border-slate-200 px-5 py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60 dark:border-slate-700 dark:text-slate-200 dark:hover:bg-slate-800"
+              >
+                {isEditMode ? t("cancelButton") : t("laterButton")}
+              </button>
+              <button
+                type="submit"
+                disabled={saving}
+                className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-60 dark:bg-blue-500 dark:hover:bg-blue-400 dark:focus:ring-offset-slate-900"
+              >
+                {saving ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Save size={16} />
+                )}
+                {saving ? t("savingButton") : t("saveButton")}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
+    </div>
+  );
+}

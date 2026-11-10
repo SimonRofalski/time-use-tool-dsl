@@ -1,0 +1,27 @@
+# Never in the image: secrets, real data, local build output
+.env*
+!.env.example
+db/.work
+db/.pull
+node_modules
+.next
+.git
+.github
+.vscode
+.claude
+*.log
+tsconfig.tsbuildinfo
+
+# not needed to build the app
+dev
+db/tests
+db/seed
+db/bootstrap
+README.md
+CLAUDE.md
+DEPLOY.md
+compose*.yml
+Dockerfile
+deploy
+TESTPLAN.md
+docs
