@@ -80,7 +80,7 @@ dev/          lokaler Ersatz für SWITCH edu-ID (Mock-Provider)
 | --- | --- | --- |
 | [docs/ENTWICKLUNG.md](docs/ENTWICKLUNG.md) | Architektur, Datenzugriff, Rechte, Konventionen, Tests | Entwicklungsteam |
 | [db/README.md](db/README.md) | Datenbank: Rollen, Migrationen, lokale Befehle | Entwicklungsteam |
-| [DEPLOY.md](DEPLOY.md) | Images, Inbetriebnahme, Updates, Backups, Datenimport | Betrieb (DSL) |
+| [DEPLOY.md](DEPLOY.md) | Images, Inbetriebnahme, edu-ID, Updates, Backups, Datenimport (Englisch) | Betrieb (DSL) |
 | [TESTPLAN.md](TESTPLAN.md) | Manuelle Prüfung aller Funktionen vor einem Release | Projektteam |
 
 ## Projekt

@@ -52,8 +52,7 @@ export async function isRateLimited(kind: string, key: string, max: number, wind
 /**
  * Client address for the rate limits. Takes the LAST X-Forwarded-For entry: that is the one the
  * reverse proxy wrote. The first entries can be anything the client sent itself, and a client
- * could otherwise get a fresh rate-limit key on every request. See DEPLOY.md, reverse proxy
- * requirements.
+ * could otherwise get a fresh rate-limit key on every request. See DEPLOY.md, "Traefik notes".
  */
 export function clientIp(request: Request): string {
   const parts = (request.headers.get("x-forwarded-for") ?? "").split(",").map((p) => p.trim()).filter(Boolean);
