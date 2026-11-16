@@ -32,7 +32,7 @@ volumes:
 
 services:
   tut_db:
-    image: registry.gitlab.ti.bfh.ch/digital-sustainability-lab/time-use-tool/db:test
+    image: registry.gitlab.ti.bfh.ch/digital-sustainability-lab/time-use-tool/time-use-tool-db:test
     networks:
       - default                       # NOT in "web": only reachable by the two services below
     environment:
@@ -59,7 +59,7 @@ services:
       options: { max-size: "10m", max-file: "5" }
 
   tut_migrate:
-    image: registry.gitlab.ti.bfh.ch/digital-sustainability-lab/time-use-tool/app:test
+    image: registry.gitlab.ti.bfh.ch/digital-sustainability-lab/time-use-tool/time-use-tool-app:test
     command: ["node", "db/scripts/migrate.mjs"]
     networks:
       - default
@@ -75,7 +75,7 @@ services:
     security_opt: ["no-new-privileges:true"]
 
   tut_app:
-    image: registry.gitlab.ti.bfh.ch/digital-sustainability-lab/time-use-tool/app:test
+    image: registry.gitlab.ti.bfh.ch/digital-sustainability-lab/time-use-tool/time-use-tool-app:test
     networks:
       - web
       - default

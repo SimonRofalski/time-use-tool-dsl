@@ -28,7 +28,7 @@ about your setup and may need adjusting:
 
 | Value | Where (in both files) |
 | --- | --- |
-| Image path `registry.gitlab.ti.bfh.ch/digital-sustainability-lab/time-use-tool/{db,app}` | `image:` of `tut_db`, `tut_migrate`, `tut_app` |
+| Image path `registry.gitlab.ti.bfh.ch/digital-sustainability-lab/time-use-tool/time-use-tool-{db,app}` | `image:` of `tut_db`, `tut_migrate`, `tut_app` |
 | Traefik entrypoint `websecure` and certresolver `letsencrypt` | labels of `tut_app` |
 | Vault paths `{{ secrets.<env>.tut.… }}` | environment of all three services |
 | Domain | `tut_app`: Traefik `Host(...)` rule, `APP_ORIGIN`, `SWITCH_OIDC_REDIRECT_URI` (all three must be the same domain) |
@@ -37,7 +37,7 @@ about your setup and may need adjusting:
 
 1. Create the GitLab project as a pull mirror of the GitHub repository. Turn on **"Trigger pipelines
    for mirror updates"** and enable the **container registry**.
-2. The pipeline (`.gitlab-ci.yml`) builds the images `app` and `db` with kaniko; it needs no
+2. The pipeline (`.gitlab-ci.yml`) builds the images `time-use-tool-app` and `time-use-tool-db` with kaniko; it needs no
    privileged runner.
    - A new commit on `main` produces the tag `:test`.
    - A git tag `vX.Y.Z` produces the tag `:vX.Y.Z`.

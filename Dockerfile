@@ -6,7 +6,7 @@
 # Runs in the DSL as two services of one image (deploy/dsl/<test|prod>/compose.yml): tut_migrate
 # (node db/scripts/migrate.mjs, then exits) and tut_app (this CMD). Built there by .gitlab-ci.yml.
 
-ARG NODE_IMAGE=node:24.13.1-slim
+ARG NODE_IMAGE=node:24.22.3-slim
 
 # --- 1. dependencies (cached as long as package*.json don't change) ---
 FROM ${NODE_IMAGE} AS deps

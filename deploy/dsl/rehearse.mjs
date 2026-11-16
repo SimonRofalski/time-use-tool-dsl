@@ -24,7 +24,7 @@ const DB_ENV = ENV === "prod" ? "prod" : "stage";
 const PROJECT = `tut-rehearse-${ENV}`;
 const NET = "tut-rehearse-web";
 const IMAGES = { app: "tut-rehearse-app", db: "tut-rehearse-db" };
-const NODE_IMAGE = "node:24.13.1-slim";
+const NODE_IMAGE = "node:24.22.3-slim";
 const env = { ...process.env, MSYS_NO_PATHCONV: "1" };
 
 const sh = (cmd, args, { allowFail = false, quiet = false } = {}) => {
@@ -47,7 +47,7 @@ let rendered = source
     if (!secrets.has(key)) secrets.set(key, randomBytes(24).toString("hex"));
     return secrets.get(key);
   })
-  .replace(/registry\.gitlab\.ti\.bfh\.ch\/\S+\/(app|db):[\w.-]+/g, (_, kind) => IMAGES[kind])
+  .replace(/registry\.gitlab\.ti\.bfh\.ch\/\S+\/time-use-tool-(app|db):[\w.-]+/g, (_, kind) => IMAGES[kind])
   .replace(/^ {2}web:\n {4}external: true$/m, `  web:\n    external: true\n    name: ${NET}`);
 if (/^[^#\n]*(\{\{|registry\.gitlab)/m.test(rendered) || !rendered.includes(`name: ${NET}`)) {
   throw new Error("rendering failed (unexpected format of the compose file)");

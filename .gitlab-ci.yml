@@ -5,8 +5,8 @@
 # comes from GitLab's predefined job variables.
 #
 # Images (as used in deploy/dsl/<test|prod>/compose.yml):
-#   $CI_REGISTRY_IMAGE/app   app + migration job   (Dockerfile, context .)
-#   $CI_REGISTRY_IMAGE/db    PostgreSQL + bootstrap (db/bootstrap/Dockerfile, context db/bootstrap)
+#   $CI_REGISTRY_IMAGE/time-use-tool-app   app + migration job   (Dockerfile, context .)
+#   $CI_REGISTRY_IMAGE/time-use-tool-db    PostgreSQL + bootstrap (db/bootstrap/Dockerfile, context db/bootstrap)
 #
 # Tags:
 #   every build                       :<short commit sha>
@@ -77,7 +77,7 @@ workflow:
 app-image:
   extends: .kaniko
   variables:
-    IMAGE: $CI_REGISTRY_IMAGE/app
+    IMAGE: $CI_REGISTRY_IMAGE/time-use-tool-app
     CONTEXT: "."
     DOCKERFILE: Dockerfile
     BASE_IMAGE_ARG: NODE_IMAGE
@@ -85,7 +85,7 @@ app-image:
 db-image:
   extends: .kaniko
   variables:
-    IMAGE: $CI_REGISTRY_IMAGE/db
+    IMAGE: $CI_REGISTRY_IMAGE/time-use-tool-db
     CONTEXT: db/bootstrap
     DOCKERFILE: db/bootstrap/Dockerfile
     BASE_IMAGE_ARG: POSTGRES_IMAGE

@@ -10,7 +10,7 @@ import { resolve } from "node:path";
 
 const ROOT = resolve(import.meta.dirname, "..", "..", "..");
 const IMAGE = process.env.TUT_IMAGE ?? "time-use-tool:dev";
-const NODE_IMAGE = "node:24.13.1-slim";
+const NODE_IMAGE = "node:24.22.3-slim";
 const DB = (login, pw) => `postgresql://${login}:${pw}@host.docker.internal:15432/tut_test`;
 const env = { ...process.env, MSYS_NO_PATHCONV: "1" };
 
